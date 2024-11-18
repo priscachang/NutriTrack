@@ -6,7 +6,7 @@ execute:
   echo: true
 
 book:
-  title: "Nutrients Tracking"
+  title: "Nutrient Tracking"
   author:
     - ChengHsin Chang (cc5211)
     - YiChen Chen (yc4562)
