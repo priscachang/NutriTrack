@@ -1,5 +1,58 @@
 # Data
 
-## Description
+## Read Data and Description
 
+### Load required library
+
+```{r}
+library(readr)
+library(tidyverse)
+library(dplyr)
+library(readr)
+```
+
+### Load Data
+
+The dataset was downloaded from xxxxxxxxxxxxxxxxxxxx and saved as "Branded Nutrients 10000.csv".
+```{r}
+data <- read_csv("Branded Nutrients10000.csv")
+```
+Guided by the warning, we call problems to understand the issue.
+```{r}
+problems(data)
+```
+From the 'problems' above, we know that the issues are due to wrong expected values of some columns where the actual value are decimals (or integers) but the expected is character. Therefore, we read the file again but set these columns to be read as decimals (doubles) to avoid the issue.
+```{r}
+set_double_col <- unique(problems(data)$col)
+
+# Create a col_types object
+col_types_list <- rep("?", ncol(data))  # Default to "guess" for all columns
+col_types_list[set_double_col] <- "d"  # Set problematic columns to double ("d")
+
+# Convert to a single string for col_types
+col_types_string <- paste(col_types_list, collapse = "")
+
+# Read the CSV with dynamic col_types
+data <- read_csv(
+  "Branded Nutrients10000.csv",
+  col_types = col_types_string
+)
+```
+
+Display the first few rows
+```{r}
+head(data)
+```
+
+
+Check column names
+```{r}
+colnames(data)
+```
 ## Missing value analysis
+Check for missing values
+```{r}
+colSums(is.na(data))
+```
+
+
