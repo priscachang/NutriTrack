@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -149,7 +183,10 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#description" id="toc-description" class="nav-link active" data-scroll-target="#description"><span class="header-section-number">2.1</span> Description</a></li>
+  <li><a href="#read-data-and-description" id="toc-read-data-and-description" class="nav-link active" data-scroll-target="#read-data-and-description"><span class="header-section-number">2.1</span> Read Data and Description</a>
+  <ul class="collapse">
+  <li><a href="#load-data" id="toc-load-data" class="nav-link" data-scroll-target="#load-data"><span class="header-section-number">2.1.1</span> Load Data</a></li>
+  </ul></li>
   <li><a href="#missing-value-analysis" id="toc-missing-value-analysis" class="nav-link" data-scroll-target="#missing-value-analysis"><span class="header-section-number">2.2</span> Missing value analysis</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/priscachang/NutriTrack/edit/main/data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/priscachang/NutriTrack/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
@@ -176,11 +213,134 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="description" class="level2" data-number="2.1">
-<h2 data-number="2.1" class="anchored" data-anchor-id="description"><span class="header-section-number">2.1</span> Description</h2>
+<section id="read-data-and-description" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="read-data-and-description"><span class="header-section-number">2.1</span> Read Data and Description</h2>
+<p>For this project, we utilized the FoodData Central API provided by the United States Department of Agriculture (USDA) to access detailed nutritional data. This API is designed to help developers incorporate nutrient information into their applications by providing comprehensive documentation about the database structure and data elements. Using this API, we collected data on 10,000 branded food items, capturing 24 features such as brand name, food category, package weight, ingredients, and various nutrients and vitamins. The data were exported to a CSV file and imported into RStudio for analysis. While the dataset is rich in information, we encountered missing values in some fields, particularly for ingredients, as not all foods have complete nutritional details. Despite this, the data offer valuable insights into nutrient composition, enabling us to identify and address gaps in dietary information. The data source is well-documented and regularly updated by the USDA, ensuring reliability and accessibility for research purposes. ### Load required library</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ purrr     1.0.2
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="load-data" class="level3" data-number="2.1.1">
+<h3 data-number="2.1.1" class="anchored" data-anchor-id="load-data"><span class="header-section-number">2.1.1</span> Load Data</h3>
+<p>The dataset was downloaded from xxxxxxxxxxxxxxxxxxxx and saved as “Branded Nutrients 10000.csv”.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"Branded Nutrients_Dataset.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 10000 Columns: 24
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr  (6): description, foodCategory, brandOwner, brandName, packageWeight, p...
+dbl (18): fdcId, Protein G, Total lipid (fat) G, Carbohydrate, by difference...
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+</div>
+<p>Display the first few rows</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 24
+    fdcId description            foodCategory brandOwner brandName packageWeight
+    &lt;dbl&gt; &lt;chr&gt;                  &lt;chr&gt;        &lt;chr&gt;      &lt;chr&gt;     &lt;chr&gt;        
+1 2617100 ALL NATURAL GLUTEN FR… Frozen Poul… Golden Pl… GOLDEN P… 24 oz        
+2 2604504 ALL NATURAL ROSEMARY … Flavored Ri… SLT Foods… HERITAGE… 6.5 oz       
+3 2570670 ARTISANAL COLLECTION … Pasta by Sh… Barilla G… BARILLA   1 lb         
+4 2607109 AUTHENTIC BARREL RIPE… Cheese       Wdh, LLC   APHRODITE 6 oz         
+5 1861692 BERRY NUT BLEND BREAK… Popcorn, Pe… Snyder's-… EMERALD   212.5 g/7.5 …
+6 2624305 BLACK CHERRY PURE ENE… Soda         Energy Be… TRUE NOR… 12 fl oz     
+# ℹ 18 more variables: publishedDate &lt;chr&gt;, `Protein G` &lt;dbl&gt;,
+#   `Total lipid (fat) G` &lt;dbl&gt;, `Carbohydrate, by difference G` &lt;dbl&gt;,
+#   `Energy KCAL` &lt;dbl&gt;, `Total Sugars G` &lt;dbl&gt;,
+#   `Fiber, total dietary G` &lt;dbl&gt;, `Calcium, Ca MG` &lt;dbl&gt;,
+#   `Iron, Fe MG` &lt;dbl&gt;, `Sodium, Na MG` &lt;dbl&gt;,
+#   `Vitamin C, total ascorbic acid MG` &lt;dbl&gt;, `Cholesterol MG` &lt;dbl&gt;,
+#   `Fatty acids, total trans G` &lt;dbl&gt;, …</code></pre>
+</div>
+</div>
+<p>Check column names</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "fdcId"                             "description"                      
+ [3] "foodCategory"                      "brandOwner"                       
+ [5] "brandName"                         "packageWeight"                    
+ [7] "publishedDate"                     "Protein G"                        
+ [9] "Total lipid (fat) G"               "Carbohydrate, by difference G"    
+[11] "Energy KCAL"                       "Total Sugars G"                   
+[13] "Fiber, total dietary G"            "Calcium, Ca MG"                   
+[15] "Iron, Fe MG"                       "Sodium, Na MG"                    
+[17] "Vitamin C, total ascorbic acid MG" "Cholesterol MG"                   
+[19] "Fatty acids, total trans G"        "Fatty acids, total saturated G"   
+[21] "Vitamin A UG"                      "Potassium, K MG"                  
+[23] "Vitamin D (D2 + D3) UG"            "Sugars, added G"                  </code></pre>
+</div>
+</div>
+</section>
 </section>
 <section id="missing-value-analysis" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="missing-value-analysis"><span class="header-section-number">2.2</span> Missing value analysis</h2>
+<p>Check for missing values</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(data))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>                            fdcId                       description 
+                                0                                 0 
+                     foodCategory                        brandOwner 
+                               45                               227 
+                        brandName                     packageWeight 
+                              588                              1866 
+                    publishedDate                         Protein G 
+                                0                                66 
+              Total lipid (fat) G     Carbohydrate, by difference G 
+                              167                               258 
+                      Energy KCAL                    Total Sugars G 
+                               94                               943 
+           Fiber, total dietary G                    Calcium, Ca MG 
+                             2201                              1957 
+                      Iron, Fe MG                     Sodium, Na MG 
+                             2024                               252 
+Vitamin C, total ascorbic acid MG                    Cholesterol MG 
+                             4810                              1946 
+       Fatty acids, total trans G    Fatty acids, total saturated G 
+                             2156                              1552 
+                     Vitamin A UG                   Potassium, K MG 
+                             9370                              4058 
+           Vitamin D (D2 + D3) UG                   Sugars, added G 
+                             8632                              7768 </code></pre>
+</div>
+</div>
 
 
 </section>
