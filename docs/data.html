@@ -185,7 +185,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#read-data-and-description" id="toc-read-data-and-description" class="nav-link active" data-scroll-target="#read-data-and-description"><span class="header-section-number">2.1</span> Read Data and Description</a>
   <ul class="collapse">
-  <li><a href="#load-data" id="toc-load-data" class="nav-link" data-scroll-target="#load-data"><span class="header-section-number">2.1.1</span> Load Data</a></li>
+  <li><a href="#load-required-library" id="toc-load-required-library" class="nav-link" data-scroll-target="#load-required-library"><span class="header-section-number">2.1.1</span> Load required library</a></li>
+  <li><a href="#data-overview" id="toc-data-overview" class="nav-link" data-scroll-target="#data-overview"><span class="header-section-number">2.1.2</span> Data Overview</a></li>
   </ul></li>
   <li><a href="#missing-value-analysis" id="toc-missing-value-analysis" class="nav-link" data-scroll-target="#missing-value-analysis"><span class="header-section-number">2.2</span> Missing value analysis</a></li>
   </ul>
@@ -215,7 +216,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="read-data-and-description" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="read-data-and-description"><span class="header-section-number">2.1</span> Read Data and Description</h2>
-<p>For this project, we utilized the FoodData Central API provided by the United States Department of Agriculture (USDA) to access detailed nutritional data. This API is designed to help developers incorporate nutrient information into their applications by providing comprehensive documentation about the database structure and data elements. Using this API, we collected data on 10,000 branded food items, capturing 24 features such as brand name, food category, package weight, ingredients, and various nutrients and vitamins. The data were exported to a CSV file and imported into RStudio for analysis. While the dataset is rich in information, we encountered missing values in some fields, particularly for ingredients, as not all foods have complete nutritional details. Despite this, the data offer valuable insights into nutrient composition, enabling us to identify and address gaps in dietary information. The data source is well-documented and regularly updated by the USDA, ensuring reliability and accessibility for research purposes. ### Load required library</p>
+<p>For this project, we utilized the FoodData Central API provided by the United States Department of Agriculture (USDA) to access detailed nutritional data. This API is designed to help developers incorporate nutrient information into their applications by providing comprehensive documentation about the database structure and data elements. Using this API, we collected data on 10,000 branded food items, capturing 24 features such as brand name, food category, package weight, ingredients, and various nutrients and vitamins. The data were exported to a CSV file and imported into RStudio for analysis. While the dataset is rich in information, we encountered missing values in some fields, particularly for ingredients, as not all foods have complete nutritional details. Despite this, the data offer valuable insights into nutrient composition, enabling us to identify and address gaps in dietary information. The data source is well-documented and regularly updated by the USDA, ensuring reliability and accessibility for research purposes.</p>
+<section id="load-required-library" class="level3" data-number="2.1.1">
+<h3 data-number="2.1.1" class="anchored" data-anchor-id="load-required-library"><span class="header-section-number">2.1.1</span> Load required library</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -239,30 +242,49 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<section id="load-data" class="level3" data-number="2.1.1">
-<h3 data-number="2.1.1" class="anchored" data-anchor-id="load-data"><span class="header-section-number">2.1.1</span> Load Data</h3>
+</section>
+<section id="data-overview" class="level3" data-number="2.1.2">
+<h3 data-number="2.1.2" class="anchored" data-anchor-id="data-overview"><span class="header-section-number">2.1.2</span> Data Overview</h3>
 <p>The dataset was downloaded from xxxxxxxxxxxxxxxxxxxx and saved as “Branded Nutrients 10000.csv”.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"Branded Nutrients_Dataset.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"Branded Nutrients_Dataset.csv"</span>,</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                 <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Rows: 10000 Columns: 24
-── Column specification ────────────────────────────────────────────────────────
-Delimiter: ","
-chr  (6): description, foodCategory, brandOwner, brandName, packageWeight, p...
-dbl (18): fdcId, Protein G, Total lipid (fat) G, Carbohydrate, by difference...
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 </div>
-</div>
+<p>In this dataset, there are 10,000 rows of data, where each row refers to a product. There are total 24 columns including information listed below.</p>
+<ul>
+<li><p>“fdcId”</p></li>
+<li><p>“description”</p></li>
+<li><p>“foodCategory”</p></li>
+<li><p>“brandOwner”</p></li>
+<li><p>“brandName”</p></li>
+<li><p>“packageWeight”</p></li>
+<li><p>“publishedDate”</p></li>
+<li><p>“Protein G”</p></li>
+<li><p>“Total lipid (fat) G”&nbsp;</p></li>
+<li><p>“Carbohydrate, by difference G”</p></li>
+<li><p>“Energy KCAL”</p></li>
+<li><p>“Total Sugars G”</p></li>
+<li><p>“Fiber, total dietary G”</p></li>
+<li><p>“Calcium, Ca MG”</p></li>
+<li><p>“Iron, Fe MG”</p></li>
+<li><p>“Sodium, Na MG”</p></li>
+<li><p>“Vitamin C, total ascorbic acid MG”</p></li>
+<li><p>“Cholesterol MG”</p></li>
+<li><p>“Fatty acids, total trans G”</p></li>
+<li><p>“Fatty acids, total saturated G”</p></li>
+<li><p>“Vitamin A UG”</p></li>
+<li><p>“Potassium, K MG”</p></li>
+<li><p>“Vitamin D (D2 + D3) UG”</p></li>
+<li><p>“Sugars, added G”</p></li>
+</ul>
 <p>Display the first few rows</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 6 × 24
@@ -287,7 +309,7 @@ dbl (18): fdcId, Protein G, Total lipid (fat) G, Carbohydrate, by difference...
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> [1] "fdcId"                             "description"                      
@@ -308,39 +330,38 @@ dbl (18): fdcId, Protein G, Total lipid (fat) G, Carbohydrate, by difference...
 </section>
 <section id="missing-value-analysis" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="missing-value-analysis"><span class="header-section-number">2.2</span> Missing value analysis</h2>
-<p>Check for missing values</p>
+<p>We noticed that except for <code>fdcId</code> and <code>description</code>, all other columns have missing values in different levels. Therefore, we examine the percentage of missing values for all columns.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(data))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>missing_summary <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Column =</span> <span class="fu">colnames</span>(data),</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">MissingCount =</span> <span class="fu">colSums</span>(<span class="fu">is.na</span>(data)),</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">MissingPercent =</span> <span class="fu">colSums</span>(<span class="fu">is.na</span>(data)) <span class="sc">/</span> <span class="fu">nrow</span>(data) <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span> </span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(MissingPercent))</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(missing_summary, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(Column, <span class="sc">-</span>MissingPercent), <span class="at">y =</span> MissingPercent)) <span class="sc">+</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"steelblue"</span>) <span class="sc">+</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="at">by =</span> <span class="dv">10</span>), <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>)) <span class="sc">+</span>  <span class="co"># Adjust y-axis breaks</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Percentage of Missing Values per Nutrient"</span>,</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Nutrients"</span>,</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Percentage of Missing Values"</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code>                            fdcId                       description 
-                                0                                 0 
-                     foodCategory                        brandOwner 
-                               45                               227 
-                        brandName                     packageWeight 
-                              588                              1866 
-                    publishedDate                         Protein G 
-                                0                                66 
-              Total lipid (fat) G     Carbohydrate, by difference G 
-                              167                               258 
-                      Energy KCAL                    Total Sugars G 
-                               94                               943 
-           Fiber, total dietary G                    Calcium, Ca MG 
-                             2201                              1957 
-                      Iron, Fe MG                     Sodium, Na MG 
-                             2024                               252 
-Vitamin C, total ascorbic acid MG                    Cholesterol MG 
-                             4810                              1946 
-       Fatty acids, total trans G    Fatty acids, total saturated G 
-                             2156                              1552 
-                     Vitamin A UG                   Potassium, K MG 
-                             9370                              4058 
-           Vitamin D (D2 + D3) UG                   Sugars, added G 
-                             8632                              7768 </code></pre>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="data_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
 </div>
 </div>
+</div>
+<p>From above, we can see that there are few missing values for main nutrients such as <code>Protein G</code>, <code>Energy KCAL</code>, <code>Total lipid (fat) G</code>, with less than 1% missing values. Also we have most <code>brandOwner</code> information with 2.27% missing values.</p>
+<p>For nutrients that are not always displayed on packages, including <code>Vitamins</code>, <code>Sugars, added G</code>, we have high portions of missing values. Therefore, in this project, we would focus on main nutrients in most of the time, and address supplemented nutrients when it is necessary.</p>
 
 
 </section>
