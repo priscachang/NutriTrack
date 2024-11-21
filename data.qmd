@@ -1,7 +1,7 @@
 # Data
 
 ## Read Data and Description
-For this project, we utilized the FoodData Central API provided by the United States Department of Agriculture (USDA) to access detailed nutritional data.
+For this project, we utilized [the FoodData Central API](https://fdc.nal.usda.gov/api-guide) provided by the United States Department of Agriculture (USDA) to access detailed nutritional data.
 
 This API is designed to help developers incorporate nutrient information into their applications by providing comprehensive documentation about the database structure and data elements. Using this API, we collected data on 10,000 branded food items, capturing 24 features such as brand name, food category, package weight, ingredients, and various nutrients and vitamins. The data were exported to a CSV file and imported into RStudio for analysis.
 
@@ -78,7 +78,7 @@ In this dataset, there are 10,000 rows of data, where each row refers to a produ
 
 We noticed that except for `fdcId` and `description`, all other columns have missing values in different levels. Therefore, we examine the percentage of missing values for all columns.
 
-```{r, message=FALSE, warning=FALSE}
+```{r}
 missing_summary <- data.frame(
   Column = colnames(data),
   MissingCount = colSums(is.na(data)),
