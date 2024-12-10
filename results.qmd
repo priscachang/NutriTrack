@@ -1,9 +1,9 @@
 # Results
 
-
 Preprocess
 1. 重複的食品取最新的date - Done
 2. (同類別或類似類別) packageWeight --> 統一單位
+3. **新增** 欄位名稱感覺要整理一下 單位可以去掉 & 簡化一些名稱否則biplot會亂
 
 0. Bread and Buns x3 + x1
 - Columns = [Energy, Protein, Fat, Carbohydrate, Sugars, Fiber, Calcium, Sodium]
@@ -14,34 +14,237 @@ Preprocess
 - Biplot 
 - 找 outlier 看看是啥
 
+## Breads
+
+**Bread's Biplot - See if any outliers!**
+```{r}
+# table(latest_data$foodCategory)
+library(dplyr)
+library(stringr)
+library(redav)
+```
+
+```{r}
+# Execute the below line to install for biplot
+# remotes::install_github("jtr13/redav")
+
+# Filter rows where foodCategory is "Breads & Buns" and keep only selected columns
+bread_data <- latest_data |> 
+  filter(foodCategory == "Breads & Buns") |> 
+  select(
+    description, 
+    foodCategory, 
+    brandOwner, 
+    brandName, 
+    packageWeight, 
+    `Protein G`, 
+    `Total lipid (fat) G`, 
+    `Carbohydrate, by difference G`, 
+    `Energy KCAL`, 
+    `Total Sugars G`, 
+    `Sodium, Na MG`
+  ) |> 
+  drop_na()
+
+# summary(bread_data)
+```
+
+```{r}
+# bread_data$packageWeight
+```
+
+```{r}
+# Adjusted function to parse packageWeight
+parse_packageWeight <- function(data, food_type) {
+  # Ensure food_type is provided
+  if (missing(food_type)) {
+    stop("The parameter 'food_type' must be specified as 'solid' or 'liquid'.")
+  }
+  
+  # Validate food_type input
+  if (!food_type %in% c("solid", "liquid")) {
+    stop("Invalid 'food_type'. Please use 'solid' or 'liquid'.")
+  }
+  
+  # Solid food logic
+  if (food_type == "solid") {
+    patterns <- list(
+      lbs = "(\\d+(\\.\\d+)?)\\s*[lL][bB][sS]?",
+      g = "(\\d+(\\.\\d+)?)\\s*[gG]",
+      oz = "(\\d+(\\.\\d+)?)\\s*[oO][zZ]",
+      kg = "(\\d+(\\.\\d+)?)\\s*[kK][gG]"
+    )
+    
+    for (unit in names(patterns)) {
+      extracted <- stringr::str_extract(data$packageWeight, patterns[[unit]])
+      data[[unit]] <- as.numeric(stringr::str_extract(extracted, "\\d+(\\.\\d+)?"))
+    }
+  }
+  
+  # Liquid food logic (currently empty)
+  if (food_type == "liquid") {
+    message("Logic for liquid food type is not yet implemented.")
+  }
+  
+  return(data)
+}
+
+# Fill the missing values for the aligned unit
+fill_missing <- function(data, food_type) {
+  # Ensure food_type is provided
+  if (missing(food_type)) {
+    stop("The parameter 'food_type' must be specified as 'solid' or 'liquid'.")
+  }
+  
+  # Validate food_type input
+  if (!food_type %in% c("solid", "liquid")) {
+    stop("Invalid 'food_type'. Please use 'solid' or 'liquid'.")
+  }
+  
+  # Solid food logic
+  if (food_type == "solid") {
+    data <- parse_packageWeight(data, food_type) |>
+      mutate(
+        g = case_when(
+          !is.na(lbs) ~ lbs * 454,
+          !is.na(oz) ~ floor(oz * 28.3495231),
+          !is.na(kg) ~ kg * 1000,
+          TRUE ~ g
+        )
+      ) |>
+      filter(!is.na(g)) |>
+      select(-lbs, -oz, -kg) |>
+      rename(packageWeight_g = g)
+  }
+  
+  # Liquid food logic (currently empty)
+  if (food_type == "liquid") {
+    message("Logic for liquid food type is not yet implemented.")
+  }
+  
+  return(data)
+}
+
+# Function to align weight scale
+align_weight_scale <- function(data, food_type) {
+  # Step 1: Call fill_missing based on food_type
+  data <- fill_missing(data, food_type)
+  
+  if (food_type == "solid"){
+      # Step 2: Perform conversion to align weight scale
+      weight_column <- paste0("packageWeight_", "g")
+      
+      if (!weight_column %in% colnames(data)) {
+        stop(paste("Column", weight_column, "is missing in the data."))
+      }
+      
+      data <- data |>
+        mutate(ratio = .data[[weight_column]] / 100)
+      
+      numeric_cols <- sapply(data, is.numeric)
+      numeric_cols <- names(numeric_cols[numeric_cols])
+      numeric_cols <- setdiff(numeric_cols, c(weight_column, "packageWeight", "ratio"))
+      
+      data[numeric_cols] <- data[numeric_cols] / data$ratio
+      
+      data <- data |>
+        select(-all_of(weight_column), -packageWeight, -ratio)
+      
+  }
+  else if (food_type == "liquid"){
+    print("Under implementation")
+  }
+  else {
+    print("Invalid food_type")
+  }
+
+  return(data)
+}
+
+bread_data <- align_weight_scale(bread_data, "solid")
+head(bread_data, 20)
+```
+```{r}
+#|fig-width: 20
+#|fig-height: 10
+draw_biplot(bread_data, point_labels = TRUE, point_size = 0.8, label_size = 2)
+```
+
 0.1 Bagels, White Bread, Hamburger/ Sandwish/ Hotdog Buns --> 看品牌 *3
 - Biplot x3 
 
+**Bagels Biplot**
+```{r}
+bagel_data <- bread_data |> 
+  filter(str_detect(description, regex("bagel", ignore_case = TRUE)))
+
+draw_biplot(bagel_data |> select(-description, -foodCategory, -brandOwner),
+            label_size = 2, fix_sign = TRUE,)
+```
+**Wheat Bread Biplot**
+```{r}
+wheat_bread_data <- bread_data |> 
+  filter(str_detect(description, regex("wheat", ignore_case = TRUE)))
+
+draw_biplot(wheat_bread_data |> select(-description, -foodCategory, -brandOwner),
+            label_size = 2, fix_sign = TRUE,)
+```
+**Data Issue**: 
+
+同樣的食物不同重量的會被算成很多種 --> 是否groupby 要把packageWeight拿掉?
+
+另外2675939 2675821 看起來都一樣為何兩筆都還在?
+
+```{r}
+latest_data |> 
+  filter(description=="100% WHOLE WHEAT BREAD, 100% WHOLE WHEAT") |> 
+  filter(brandOwner == "Safeway, Inc.")
+```
+```{r}
+wheat_bread_data |> 
+  filter(description=="100% WHOLE WHEAT BREAD, 100% WHOLE WHEAT") |> 
+  filter(brandOwner == "Safeway, Inc.")
+```
+
 `PRISCA`
 1. Paralleled Coordinated Plot x1
+
 - 統一單位
+
 - 各種肉類 & 魚類用不同顏色，axes 為重點營養素，看不同肉的營養素含量
+
 --> Understand different nutritions across different types of meats/fishes
 
 `CLAIRE`
 2. Vegetables *3-4
+
 - 把所有含vegetables 都含進來
+
 - 統一單位
+
 - 一個營養素畫一個cleverand dot plot (Vit A, C, D, Iron, Calcium, Fiber)
 
 `PRISCA`
 3. Snacks *1
+
 - 挑Cakes, Cupcakes, Snack Cakes
+
 - 統一單位
+
 - scatter plot: x = calorie, y = sugar, color = brandOwner or brandName
 
 OPTIONAL 4. Drinks *1
+
 - Apple Juice: bi-plot. Columns = [Energy, Sugar, Sodium, Vit C, Potassium]. Drop rows with missing values.
+
 - Milk: bi-plot. Columns = [Energy, Protein, Fat]
 
 Food category
+
 1. 挑涵蓋食物最多的幾個種類
+
 2. Plot biplot (熟食) --> interactive
+
  Cheese, Chocalate, Honey, Oils TBD
  
  
