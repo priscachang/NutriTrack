@@ -1,5 +1,6 @@
 # Results
 
+
 Preprocess
 1. 重複的食品取最新的date - Done
 2. (同類別或類似類別) packageWeight --> 統一單位
@@ -44,4 +45,9 @@ Food category
  Cheese, Chocalate, Honey, Oils TBD
  
  
+
+
+
+
+
 

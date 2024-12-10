@@ -38,5 +38,15 @@
     "crumbs": [
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>Data</span>"
     ]
+  },
+  {
+    "objectID": "data.html#data-cleaning",
+    "href": "data.html#data-cleaning",
+    "title": "2  Data",
+    "section": "2.3 Data Cleaning",
+    "text": "2.3 Data Cleaning\n\n\nCode\nlibrary(dplyr)\n\ndata &lt;- data |&gt; \n  mutate(publishedDate = as.Date(publishedDate, format = \"%m/%d/%Y\"))\n\nlatest_data &lt;- data |&gt; \n  group_by(description, foodCategory, brandOwner, brandName, packageWeight) |&gt; \n  slice_max(order_by = publishedDate, n = 1) |&gt; \n  ungroup()",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Data</span>"
+    ]
   }
 ]

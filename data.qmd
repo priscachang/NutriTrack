@@ -101,3 +101,17 @@ ggplot(missing_summary, aes(x = reorder(Column, -MissingPercent), y = MissingPer
 From above, we can see that there are few missing values for main nutrients such as `Protein G`, `Energy KCAL`, `Total lipid (fat) G`, with less than 1% missing values. Also we have most `brandOwner` information with 2.27% missing values.
 
 For nutrients that are not always displayed on packages, including `Vitamins`, `Sugars, added G`, we have high portions of missing values. Therefore, in this project, we would focus on main nutrients in most of the time, and address supplemented nutrients when it is necessary.
+
+## Data Cleaning
+```{r}
+library(dplyr)
+
+data <- data |> 
+  mutate(publishedDate = as.Date(publishedDate, format = "%m/%d/%Y"))
+
+latest_data <- data |> 
+  group_by(description, foodCategory, brandOwner, brandName, packageWeight) |> 
+  slice_max(order_by = publishedDate, n = 1) |> 
+  ungroup()
+```
+
