@@ -38,5 +38,15 @@
     "crumbs": [
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>Data</span>"
     ]
+  },
+  {
+    "objectID": "results.html",
+    "href": "results.html",
+    "title": "3  Results",
+    "section": "",
+    "text": "Preprocess 1. 重複的食品取最新的date - Done 2. (同類別或類似類別) packageWeight –&gt; 統一單位\n\nBread and Buns x3 + x1\n\n\nColumns = [Energy, Protein, Fat, Carbohydrate, Sugars, Fiber, Calcium, Sodium]\n\nCLAIRE 0.0 All breads*1 - 統一單位 - Biplot - 找 outlier 看看是啥\n0.1 Bagels, White Bread, Hamburger/ Sandwish/ Hotdog Buns –&gt; 看品牌 *3 - Biplot x3\nPRISCA 1. Paralleled Coordinated Plot x1 - 統一單位 - 各種肉類 & 魚類用不同顏色，axes 為重點營養素，看不同肉的營養素含量 –&gt; Understand different nutritions across different types of meats/fishes\nCLAIRE 2. Vegetables *3-4 - 把所有含vegetables 都含進來 - 統一單位 - 一個營養素畫一個cleverand dot plot (Vit A, C, D, Iron, Calcium, Fiber)\nPRISCA 3. Snacks *1 - 挑Cakes, Cupcakes, Snack Cakes - 統一單位 - scatter plot: x = calorie, y = sugar, color = brandOwner or brandName\nOPTIONAL 4. Drinks *1 - Apple Juice: bi-plot. Columns = [Energy, Sugar, Sodium, Vit C, Potassium]. Drop rows with missing values. - Milk: bi-plot. Columns = [Energy, Protein, Fat]\nFood category 1. 挑涵蓋食物最多的幾個種類 2. Plot biplot (熟食) –&gt; interactive Cheese, Chocalate, Honey, Oils TBD",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Results</span>"
+    ]
   }
 ]
