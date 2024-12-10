@@ -104,8 +104,6 @@ For nutrients that are not always displayed on packages, including `Vitamins`, `
 
 ## Data Cleaning
 ```{r}
-library(dplyr)
-
 data <- data |> 
   mutate(publishedDate = as.Date(publishedDate, format = "%m/%d/%Y"))
 
