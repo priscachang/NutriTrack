@@ -214,7 +214,162 @@ wheat_bread_data |>
 - 各種肉類 & 魚類用不同顏色，axes 為重點營養素，看不同肉的營養素含量
 
 --> Understand different nutritions across different types of meats/fishes
+```{r}
+tmp <- table(latest_data$foodCategory)
+summary_table <- sort(tmp[tmp > 80], decreasing = TRUE)
+summary_table
+```
+```{r}
+# Fish
+fish_origin <- latest_data[latest_data$foodCategory %in% "Fish  Unprepared/Unprocessed", ] |> 
+  mutate(packageWeight = str_extract(description, "\\d+\\s?(OZ|LB)")) |> 
+  filter(!is.na(packageWeight)) |>  # Drop rows where packageWeight is NA
+  mutate(Meat_Type = "Fish")
 
+# Chicken
+chicken_origin <- latest_data[latest_data$foodCategory %in% "Poultry, Chicken & Turkey", ]  |> 
+  filter(!is.na(packageWeight)) |> 
+  mutate(Meat_Type = "Poultry, Chicken & Turkey")
+
+# Processed_Pork
+Processed_Pork_origin <- latest_data[
+  latest_data$foodCategory %in% "Meat/Poultry/Other Animals  Prepared/Processed" &
+  grepl("BACN|HAM|Sausage", latest_data$description, ignore.case = TRUE),
+] |> 
+  mutate(
+    packageWeight = str_extract(description, "\\d+#") |> 
+                     str_replace("#", " lbs"),
+    
+    packageWeight = if_else(
+      is.na(packageWeight),
+      str_extract(description, "\\d+\\s?(oz.|lb.)"),
+      packageWeight
+    ) ,
+    Meat_Type = "Processed_Pork"
+  ) |> 
+  filter(!is.na(packageWeight))
+
+# Beef and Pork
+beef_Pork_origin <- latest_data[
+  latest_data$foodCategory %in% "Other Meats" &
+  grepl("PORK|BEEF", latest_data$description, ignore.case = TRUE), 
+] |> 
+  filter(!is.na(packageWeight)) |> 
+  mutate(
+    Meat_Type = case_when(
+      grepl("BEEF", description, ignore.case = TRUE) ~ "Beef",
+      grepl("PORK", description, ignore.case = TRUE) ~ "Pork",
+      TRUE ~ NA_character_  
+    )
+  )
+```
+
+Plot 1
+```{r}
+# Merge the whole meat data
+data_list1 <- list(fish_origin, chicken_origin, Processed_Pork_origin)
+
+combined_meat_data_1 <- bind_rows(data_list1) |> 
+  select(
+    description, 
+    packageWeight, 
+    `Protein G`, 
+    `Total lipid (fat) G`, 
+    `Energy KCAL`, 
+    `Calcium, Ca MG`,
+    `Iron, Fe MG`,
+    `Sodium, Na MG`,
+    `Cholesterol MG`,
+    `Meat_Type`
+  ) |> 
+  drop_na()
+#colSums(is.na(combined_meat_data))
+```
+
+```{r}
+data_cleaned_1 <- align_weight_scale(combined_meat_data_1, food_type = "solid")
+```
+
+
+
+```{r}
+library(GGally)
+
+data_filtered_1 <- data_cleaned_1 %>%
+  filter(
+    !(`Sodium, Na MG` > 500),
+    !(`Total lipid (fat) G` > 100)
+  )
+
+
+ggparcoord(
+  data = data_filtered_1,
+  columns = 2:8,                    # 營養變量的列
+  groupColumn = 9,                 # 使用 Meat_Type 作為分組
+  alpha = 0.5,                      # 透明度
+  scale = "uniminmax",              # 標準化數據
+  title = "Parallel Coordinate Plot with Fish, Chicken and Processed Pork"
+) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 12),
+    legend.text = element_text(size = 12)
+  ) +
+  labs(x = "Nutritional Variables", y = "Scaled Values", color = "Meat Type")
+
+```
+
+Plot2
+```{r}
+# Merge the whole meat data
+data_list2 <- list(fish_origin, beef_Pork_origin)
+
+combined_meat_data_2 <- bind_rows(data_list2) |> 
+  select(
+    description, 
+    packageWeight, 
+    `Protein G`, 
+    `Total lipid (fat) G`, 
+    `Energy KCAL`, 
+    `Calcium, Ca MG`,
+    `Iron, Fe MG`,
+    `Sodium, Na MG`,
+    `Cholesterol MG`,
+    `Meat_Type`
+  ) |> 
+  drop_na()
+#colSums(is.na(combined_meat_data))
+```
+
+
+```{r}
+data_cleaned_2 <- align_weight_scale(combined_meat_data_2, food_type = "solid")
+
+data_filtered_2 <- data_cleaned_2 %>%
+  filter(
+    !(`Sodium, Na MG` > 500),
+    !(`Total lipid (fat) G` > 100)
+  )
+
+
+ggparcoord(
+  data = data_filtered_2,
+  columns = 2:8,                    # 營養變量的列
+  groupColumn = 9,                 # 使用 Meat_Type 作為分組
+  alpha = 0.5,                      # 透明度
+  scale = "uniminmax",              # 標準化數據
+  title = "Parallel Coordinate Plot with Fish, Beef and Pork"
+) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 12),
+    legend.text = element_text(size = 12)
+  ) +
+  labs(x = "Nutritional Variables", y = "Scaled Values", color = "Meat Type")
+
+```
 `CLAIRE`
 2. Vegetables *3-4
 
@@ -232,6 +387,61 @@ wheat_bread_data |>
 - 統一單位
 
 - scatter plot: x = calorie, y = sugar, color = brandOwner or brandName
+```{r}
+snack_origin <- latest_data[latest_data$foodCategory %in% "Cakes, Cupcakes, Snack Cakes", ] |> 
+  select(
+    description, 
+    packageWeight, 
+    brandName,
+    `Energy KCAL`, 
+    `Total Sugars G`
+  ) |> 
+  drop_na()
+snack_cleaned <- align_weight_scale(snack_origin, food_type = "solid")
+
+brand_freq <- table(snack_cleaned$brandName)
+
+# Filter for brands appearing more than 2 times
+brands_more_than_two <- names(brand_freq[brand_freq > 2])
+
+snack <- snack_cleaned[snack_cleaned$brandName %in% brands_more_than_two, ]
+```
+
+
+```{r}
+ggplot(snack, aes(x = `Energy KCAL`, y = `Total Sugars G`, color = brandName)) +
+  geom_point(size = 2) + # Add points with size
+  theme_minimal() + # Minimal theme
+  labs(
+    title = "Scatter Plot: Calories vs Sugar",
+    x = "Calories (Energy KCAL)",
+    y = "Total Sugars (G)",
+    color = "Brand Name"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16),
+    axis.title = element_text(size = 12)
+  )
+```
+
+Positive Correlation: There is a positive correlation between calories (Energy KCAL) and total sugars (G). As calories increase, the total sugar content also tends to increase.
+
+Brand-Specific Clustering:
+
+SCHNUCKS and RICH'S appear to have products with low sugar and calorie content, forming a cluster in the lower-left corner of the plot.
+MAPLEHURST BAKERIES and MO PIE have products that exhibit higher calories and sugar levels, forming a cluster toward the upper-right region.
+SOMETHING SWEET, TASTYKAKE, and UKROP'S are distributed across higher calorie and sugar levels, suggesting their products may be more calorie-dense and sugary.
+Outliers:
+
+There are a few outliers with exceptionally high sugar and calorie values, particularly from MAPLEHURST BAKERIES and MO PIE. These might represent dessert items or highly sweetened products.
+Low-Sugar Options:
+
+Some brands like KROGER and DIERBERGS BAKEHOUSE appear to have options with relatively lower sugar and calorie levels, suggesting potential low-calorie product lines.
+Brand Strategy:
+
+Brands like MAPLEHURST BAKERIES seem to target consumers seeking indulgent, sugary, high-calorie products.
+Brands like SCHNUCKS may target health-conscious consumers with lower sugar and calorie products.
+
 
 OPTIONAL 4. Drinks *1
 
