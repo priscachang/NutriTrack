@@ -83,9 +83,21 @@ parse_packageWeight <- function(data, food_type) {
   
   # Liquid food logic (currently empty)
   if (food_type == "liquid") {
-    message("Logic for liquid food type is not yet implemented.")
+    patterns <- list(
+      gal = "(\\d+(\\.\\d+)?)\\s*[gG][aA][lL]",
+      l = "(\\d+(\\.\\d+)?)\\s*[lL]\\b",  # Matches 'L' but not 'mL'
+      ml = "(\\d+(\\.\\d+)?)\\s*[mM][lL]",
+      fl_oz = "(\\d+(\\.\\d+)?)\\s*[fF][lL]\\s*[oO][zZ]",
+      qt = "(\\d+(\\.\\d+)?)\\s*[qQ][tT][sS]?"  # Matches 'QT', 'QTS', 'Quart'
+    )
+    
+    for (unit in names(patterns)) {
+      extracted <- stringr::str_extract(data$packageWeight, patterns[[unit]])
+      data[[unit]] <- as.numeric(stringr::str_extract(extracted, "\\d+(\\.\\d+)?"))
+    }
   }
-  
+
+
   return(data)
 }
 
@@ -119,7 +131,19 @@ fill_missing <- function(data, food_type) {
   
   # Liquid food logic (currently empty)
   if (food_type == "liquid") {
-    message("Logic for liquid food type is not yet implemented.")
+    data <- parse_packageWeight(data, food_type) |>
+      mutate(
+        ml = case_when(
+          !is.na(l) ~ l * 1000,
+          !is.na(fl_oz) ~ floor(fl_oz * 29.5735),
+          !is.na(qt) ~ qt * floor(qt * 946.352946),
+          !is.na(gal) ~ floor(gal * 3785.411784 ),
+          TRUE ~ ml
+        )
+      ) |>
+      filter(!is.na(ml)) |>
+      select(-l, -fl_oz, -qt, -gal) |>
+      rename(packageWeight_ml = ml)
   }
   
   return(data)
@@ -152,7 +176,25 @@ align_weight_scale <- function(data, food_type) {
       
   }
   else if (food_type == "liquid"){
-    print("Under implementation")
+      # Step 2: Perform conversion to align weight scale
+      weight_column <- paste0("packageWeight_", "ml")
+      
+      if (!weight_column %in% colnames(data)) {
+        stop(paste("Column", weight_column, "is missing in the data."))
+      }
+      
+      data <- data |>
+        mutate(ratio = .data[[weight_column]] / 100)
+      
+      numeric_cols <- sapply(data, is.numeric)
+      numeric_cols <- names(numeric_cols[numeric_cols])
+      numeric_cols <- setdiff(numeric_cols, c(weight_column, "packageWeight", "ratio"))
+      
+      data[numeric_cols] <- data[numeric_cols] / data$ratio
+      
+      data <- data |>
+        select(-all_of(weight_column), -packageWeight, -ratio)
+      
   }
   else {
     print("Invalid food_type")
@@ -162,25 +204,26 @@ align_weight_scale <- function(data, food_type) {
 }
 
 bread_data <- align_weight_scale(bread_data, "solid")
-head(bread_data, 20)
+# head(bread_data, 20)
 ```
+
 ```{r}
-#|fig-width: 20
-#|fig-height: 10
-draw_biplot(bread_data, point_labels = TRUE, point_size = 0.8, label_size = 2)
+draw_biplot(bread_data, point_labels = TRUE, point_size = 2, label_size = 3)
 ```
 
 0.1 Bagels, White Bread, Hamburger/ Sandwish/ Hotdog Buns --> 看品牌 *3
 - Biplot x3 
 
 **Bagels Biplot**
-```{r}
+Below is the bi-plot of brands for bagels.
+```{r,fig.height=10,fig.width=15}
 bagel_data <- bread_data |> 
   filter(str_detect(description, regex("bagel", ignore_case = TRUE)))
 
 draw_biplot(bagel_data |> select(-description, -foodCategory, -brandOwner),
             label_size = 2, fix_sign = TRUE,)
 ```
+
 **Wheat Bread Biplot**
 ```{r}
 wheat_bread_data <- bread_data |> 
@@ -198,7 +241,8 @@ draw_biplot(wheat_bread_data |> select(-description, -foodCategory, -brandOwner)
 ```{r}
 latest_data |> 
   filter(description=="100% WHOLE WHEAT BREAD, 100% WHOLE WHEAT") |> 
-  filter(brandOwner == "Safeway, Inc.")
+  filter(brandOwner == "Safeway, Inc.") 
+  
 ```
 ```{r}
 wheat_bread_data |> 
@@ -323,7 +367,7 @@ ggparcoord(
 Plot2
 ```{r}
 # Merge the whole meat data
-data_list2 <- list(fish_origin, beef_Pork_origin)
+data_list2 <- list(chicken_origin, beef_Pork_origin)
 
 combined_meat_data_2 <- bind_rows(data_list2) |> 
   select(
@@ -370,14 +414,140 @@ ggparcoord(
   labs(x = "Nutritional Variables", y = "Scaled Values", color = "Meat Type")
 
 ```
-`CLAIRE`
+
 2. Vegetables *3-4
 
-- 把所有含vegetables 都含進來
+**Fiber**
+```{r}
+# Define the list of food categories to filter
+selected_categories <- c(
+  #"Vegetables - Prepared/Processed",
+  #"Vegetables  Prepared/Processed",
+  "Vegetable and Lentil Mixes",
+  "Tomatoes",
+  "Pre-Packaged Fruit & Vegetables",
+  "Frozen Vegetables",
+  #"Fruit - Prepared/Processed",
+  "Fruit  Prepared/Processed",
+  "Fruits  Unprepared/Unprocessed (Shelf Stable)"
+)
 
-- 統一單位
+# Filter rows based on foodCategory
+vege_fruit_data <- latest_data |> 
+  filter(foodCategory %in% selected_categories) |> 
+  select(-fdcId)
 
-- 一個營養素畫一個cleverand dot plot (Vit A, C, D, Iron, Calcium, Fiber)
+vege_fruit_data <- align_weight_scale(vege_fruit_data, "solid")
+# View the first few rows of the filtered data
+vege_fruit_data
+# dim(vege_fruit_data)
+```
+
+```{r, fig.width=12, fig.height=8}
+
+# Select top 30 rows based on Fiber
+top_fiber_data <- vege_fruit_data |>
+  rename(Fiber = `Fiber, total dietary G`) |> 
+  arrange(desc(Fiber)) |>
+  slice_head(n = 10)  # Select the top 30 rows
+
+# Draw Cleveland dot plot
+ggplot(top_fiber_data, aes(x = Fiber, y = fct_reorder(description, Fiber))) +
+  geom_point(color = 'blue') +
+  ggtitle("Cleveland Dot Plot for Top 30 Fiber-Rich Vegetables or Fruits") +
+  xlab("Fiber g/100g") +
+  ylab("") +
+  theme_linedraw() +
+  theme(
+    axis.text.y = element_text(size = 8)  # Adjust Y-axis label size for better readability
+  )+
+  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
+
+```
+```{r, fig.width=12, fig.height=8}
+
+# # Select top 30 rows based on Calcium
+# rows_to_delete <- c("50/50 BLEND A BLEND OF SPRING MIX & SPINACH, 50/50 BLEND", 
+#                     "A SUPERFOOD SALAD WITH TENDER, TASTY BABY KALE",
+#                     "BlEND BABY SPINACH & SPRING MIX",
+#                     "50-50 BABY SPINACH, BABY LETTUCE, BABY GREENS, RADICCHIO, 50-50",
+#                     "50-50 BABY SPINACH, BABY LETTUCES, BABY GREENS, RADICCHIO, 50-50")
+# 
+# top_cal_data <- vege_fruit_data |>
+#   rename(Calcium = `Calcium, Ca MG`) |> 
+#   arrange(desc(Calcium)) |>
+#   slice_head(n = 40)  |> 
+#   mutate(
+#     description = case_when(
+#       description == "100% NATURAL ORGANIC CHIA SEEDS" ~ "ORGANIC CHIA SEEDS",
+#       description == "ACTUALLY SPICY CRUNCHY LENTILS SUPERFOOD SNACK, ACTUALLY SPICY" ~ "SPICY CRUNCHY LENTILS SUPERFOOD SNACK",
+#       description == "100% BABY KALE" ~ "BABY KALE",
+#       description == "(GREEN) HOUSE CAESAR CRUNCHY GREEN LEAF, ROMAINE LETTUCE AND ARUGULA, SHREDDED SHARP PARMESAN CHEESE, AND CRISPY GARLIC PARMESAN CROUTONS SALAD KIT" ~ "REVOL GREENS SALAD KIT",
+#       description == "A SUPERFOOD SALAD WITH TENDER, TASTY BABY KALE" ~ "BABY KALE",
+#       description == "50/50 BLEND BABY SPINACH & SPRING MIX, 50/50 BLEND" ~ "BlEND BABY SPINACH & SPRING MIX",
+#       description == "50/50 MIX SALAD" ~ "FRESH EXPRESS MIX SALAD",
+#       description == "100% RUSSET JULIENNE POTATOES IN A CREAMY CHEESE SAUCE" ~ "RUSSET JULIENNE POTATOES IN A CREAMY CHEESE SAUCE",
+#       TRUE ~ description  # Keep the original description for all other rows
+#     )
+#   ) |> 
+#   filter(!description %in% rows_to_delete)
+# 
+# # Draw Cleveland dot plot
+# ggplot(top_cal_data, aes(x = Calcium, y = fct_reorder(description, Calcium))) +
+#   geom_point(color = "blue") +
+#   ggtitle("Cleveland Dot Plot for Top 30 Calcium-Rich Vegetables or Fruits") +
+#   xlab("Calcium mg/100g") +
+#   ylab("") +
+#   theme_linedraw() +
+#   theme(
+#     axis.text.y = element_text(size = 8)  # Adjust Y-axis label size for better readability
+#   )+
+#   theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
+
+```
+
+
+```{r, fig.width=12, fig.height=4}
+
+# Select top 30 rows based on Vitamin C, total ascorbic acid MG
+# rows_to_delete <- c("50/50 BLEND A BLEND OF SPRING MIX & SPINACH, 50/50 BLEND", 
+#                     "A SUPERFOOD SALAD WITH TENDER, TASTY BABY KALE",
+#                     "BlEND BABY SPINACH & SPRING MIX",
+#                     "50-50 BABY SPINACH, BABY LETTUCE, BABY GREENS, RADICCHIO, 50-50",
+#                     "50-50 BABY SPINACH, BABY LETTUCES, BABY GREENS, RADICCHIO, 50-50")
+
+# top_vc_data <- vege_fruit_data |>
+#   rename(Vitamin_C = `Vitamin C, total ascorbic acid MG`) |> 
+#   arrange(desc(Vitamin_C)) |>
+#   slice_head(n = 15) |> 
+#    filter(!is.na(Vitamin_C))
+#   # mutate(
+#   #   description = case_when(
+#   #     description == "100% NATURAL ORGANIC CHIA SEEDS" ~ "ORGANIC CHIA SEEDS",
+#   #     description == "ACTUALLY SPICY CRUNCHY LENTILS SUPERFOOD SNACK, ACTUALLY SPICY" ~ "SPICY CRUNCHY LENTILS SUPERFOOD SNACK",
+#   #     description == "100% BABY KALE" ~ "BABY KALE",
+#   #     description == "(GREEN) HOUSE CAESAR CRUNCHY GREEN LEAF, ROMAINE LETTUCE AND ARUGULA, SHREDDED SHARP PARMESAN CHEESE, AND CRISPY GARLIC PARMESAN CROUTONS SALAD KIT" ~ "REVOL GREENS SALAD KIT",
+#   #     description == "A SUPERFOOD SALAD WITH TENDER, TASTY BABY KALE" ~ "BABY KALE",
+#   #     description == "50/50 BLEND BABY SPINACH & SPRING MIX, 50/50 BLEND" ~ "BlEND BABY SPINACH & SPRING MIX",
+#   #     description == "50/50 MIX SALAD" ~ "FRESH EXPRESS MIX SALAD",
+#   #     description == "100% RUSSET JULIENNE POTATOES IN A CREAMY CHEESE SAUCE" ~ "RUSSET JULIENNE POTATOES IN A CREAMY CHEESE SAUCE",
+#   #     TRUE ~ description  # Keep the original description for all other rows
+#   #   )
+#   # ) |> 
+#   # filter(!description %in% rows_to_delete)
+# 
+# # Draw Cleveland dot plot
+# ggplot(top_vc_data, aes(x = Vitamin_C, y = fct_reorder(description, Vitamin_C))) +
+#   geom_point(color = "blue") +
+#   ggtitle("Cleveland Dot Plot for Top 30 Vitamin_C-Rich Vegetables or Fruits") +
+#   xlab("Vitamin_C mg/100g") +
+#   ylab("") +
+#   theme_linedraw() +
+#   theme(
+#     axis.text.y = element_text(size = 8)  # Adjust Y-axis label size for better readability
+#   )+
+#   theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
+```
 
 `PRISCA`
 3. Snacks *1
@@ -402,15 +572,15 @@ snack_cleaned <- align_weight_scale(snack_origin, food_type = "solid")
 brand_freq <- table(snack_cleaned$brandName)
 
 # Filter for brands appearing more than 2 times
-brands_more_than_two <- names(brand_freq[brand_freq > 2])
+brands_more_than_two <- names(brand_freq[brand_freq > 3])
 
 snack <- snack_cleaned[snack_cleaned$brandName %in% brands_more_than_two, ]
 ```
 
 
-```{r}
+```{r,fig.width=12}
 ggplot(snack, aes(x = `Energy KCAL`, y = `Total Sugars G`, color = brandName)) +
-  geom_point(size = 2) + # Add points with size
+  geom_point(size = 2, alpha=0.7) + # Add points with size
   theme_minimal() + # Minimal theme
   labs(
     title = "Scatter Plot: Calories vs Sugar",
@@ -443,11 +613,68 @@ Brands like MAPLEHURST BAKERIES seem to target consumers seeking indulgent, suga
 Brands like SCHNUCKS may target health-conscious consumers with lower sugar and calorie products.
 
 
-OPTIONAL 4. Drinks *1
-
+4. Drinks *1
 - Apple Juice: bi-plot. Columns = [Energy, Sugar, Sodium, Vit C, Potassium]. Drop rows with missing values.
 
 - Milk: bi-plot. Columns = [Energy, Protein, Fat]
+```{r}
+apple_juice_data <- latest_data |> 
+  filter(
+    str_detect(description, regex("Apple", ignore_case = TRUE)) &  # Contains "Apple"
+    str_detect(description, regex("Juice", ignore_case = TRUE))   # Contains "Juice"
+  ) |>
+  select(
+    description,
+    brandName, 
+    packageWeight, 
+    `Vitamin C, total ascorbic acid MG`, 
+    `Potassium, K MG`,
+    `Energy KCAL`, 
+    `Total Sugars G`
+  ) |> 
+  drop_na()
+
+apple_juice_data <- align_weight_scale(apple_juice_data, "liquid")
+
+# apple_juice_data
+```
+
+
+```{r}
+draw_biplot(apple_juice_data |> select(-description))
+```
+
+```{r}
+milk_data <- latest_data |> 
+  filter(foodCategory == "Milk") |> 
+  filter(
+    str_detect(description, regex("Milk", ignore_case = TRUE)), 
+    !str_detect(description, regex("CHOCOLATE|STRAWBERRY", ignore_case = TRUE))
+  ) |>
+  select(
+    description,
+    brandName, 
+    packageWeight, 
+    `Calcium, Ca MG`, 
+    `Total lipid (fat) G`,
+    `Protein G`,
+    `Potassium, K MG`,
+    `Energy KCAL`, 
+    `Total Sugars G`
+  ) |> 
+  drop_na()
+
+milk_data <- align_weight_scale(milk_data, "liquid")
+
+# milk_data
+```
+
+
+```{r}
+draw_biplot(milk_data |> select(-description))
+```
+
+
 
 Food category
 

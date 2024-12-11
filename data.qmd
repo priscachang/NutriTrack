@@ -108,8 +108,8 @@ data <- data |>
   mutate(publishedDate = as.Date(publishedDate, format = "%m/%d/%Y"))
 
 latest_data <- data |> 
-  group_by(description, foodCategory, brandOwner, brandName, packageWeight) |> 
-  slice_max(order_by = publishedDate, n = 1) |> 
+  group_by(description, foodCategory, brandOwner, brandName) |> 
+  slice_max(order_by = publishedDate, n = 1, with_ties = FALSE) |> 
   ungroup()
 ```
 
