@@ -12,8 +12,8 @@ u_points <- data.frame(
 
 # Define coordinates for the letter S with adjusted height and position
 theta <- seq(0, pi, length.out = 100)
-s_top <- data.frame(x = 2.7 + 0.5 * sin(-theta), y = 1.5 + 0.5 * cos(-theta))  # Top semi-circle
-s_bottom <- data.frame(x = 2.7 + 0.5 * sin(theta), y = 0.5 + 0.5 * cos(theta))  # Bottom semi-circle
+s_top <- data.frame(x = 2.7 + 0.5 * sin(-theta), y = 1.5 + 0.5 * cos(-theta)) 
+s_bottom <- data.frame(x = 2.7 + 0.5 * sin(theta), y = 0.5 + 0.5 * cos(theta))  
 s_points <- rbind(s_top, s_bottom)
 
 # Define coordinates for the letter D with adjusted height and position
@@ -21,7 +21,7 @@ d_line <- data.frame(x = rep(3.5, 50), y = seq(0, 2, length.out = 50))  # Vertic
 d_semi_circle <- data.frame(
   x = 3.5 + 0.8 * cos(seq(-pi / 2, pi / 2, length.out = 100)), 
   y = 1 + 1 * sin(seq(-pi / 2, pi / 2, length.out = 100))
-)  # Right semi-circle
+)  
 d_points <- rbind(d_line, d_semi_circle)
 
 # Define coordinates for the letter A with a crossbar and position adjustment
