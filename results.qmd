@@ -334,6 +334,8 @@ ggparcoord(
   ) +
   labs(x = "Nutritional Variables", y = "Scaled Values", color = "Meat Type")
 
+# output_path <- "C:/Users/User/Desktop/Master/STATGR5702_EDAV/Asgmt/Final/NutriTrack/docs/images/fcp.jpg"
+# ggsave(filename = output_path, plot = fcp, width = 8, height = 6, dpi = 300)
 ```
 
 
@@ -391,6 +393,84 @@ ggparcoord(
 
 ```
 
+
+```{r}
+# Save data for interactive plots - execute when required and saved the images properly
+# Load required libraries
+# library(ggplot2)
+# # Function to create and save parallel coordinate plots
+# create_parallel_plot <- function(data_list, output_name, title) {
+#   # Combine the data from the input list
+#   combined_data <- bind_rows(data_list) |>
+#     select(
+#       description,
+#       packageWeight,
+#       `Protein G`,
+#       `Total lipid (fat) G`,
+#       `Energy KCAL`,
+#       `Calcium, Ca MG`,
+#       `Iron, Fe MG`,
+#       `Sodium, Na MG`,
+#       `Cholesterol MG`,
+#       `Meat_Type`
+#     ) |>
+#     drop_na()
+# 
+#   # Align weights
+#   data_cleaned <- align_weight_scale(combined_data, food_type = "solid")
+# 
+#   # Filter the data
+#   data_filtered <- data_cleaned %>%
+#     filter(
+#       !(`Sodium, Na MG` > 500),
+#       !(`Total lipid (fat) G` > 100)
+#     )
+# 
+#   # Create the parallel coordinate plot
+#   plot <- ggparcoord(
+#     data = data_filtered,
+#     columns = 2:8,                    # Nutritional variable columns
+#     groupColumn = 9,                  # Group by Meat_Type
+#     alpha = 0.5,                      # Transparency
+#     scale = "uniminmax",              # Standardize data
+#     title = title                     # Plot title
+#   ) +
+#     theme_minimal() +
+#     theme(
+#       axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+#       axis.text.y = element_text(size = 12),
+#       legend.text = element_text(size = 12)
+#     ) +
+#     labs(x = "Nutritional Variables", y = "Scaled Values", color = "Meat Type")
+# 
+#   # Save the plot
+#   output_path <- paste0("C:/Users/User/Desktop/Master/STATGR5702_EDAV/Asgmt/Final/NutriTrack/docs/images/", output_name, ".jpg")
+#   ggsave(filename = output_path, plot = plot, width = 10, height = 5, dpi = 300)
+# }
+# 
+# # Define the data combinations
+# data_combinations <- list(
+#   list(data_list = list(beef_Pork_origin, chicken_origin), output_name = "bc", title = "Parallel Coordinate Plot with Beef and Chicken"),
+#   list(data_list = list(beef_Pork_origin, fish_origin), output_name = "bf", title = "Parallel Coordinate Plot with Beef and Fish"),
+#   list(data_list = list(beef_Pork_origin, Processed_Pork_origin), output_name = "bp", title = "Parallel Coordinate Plot with Beef and Processed Pork"),
+#   list(data_list = list(chicken_origin, fish_origin), output_name = "cf", title = "Parallel Coordinate Plot with Chicken and Fish"),
+#   list(data_list = list(fish_origin, Processed_Pork_origin), output_name = "fp", title = "Parallel Coordinate Plot with Fish and Processed Pork"),
+#   list(data_list = list(chicken_origin, Processed_Pork_origin), output_name = "cp", title = "Parallel Coordinate Plot with Chicken and Processed Pork"),
+#   list(data_list = list(chicken_origin, fish_origin, Processed_Pork_origin), output_name = "cfp", title = "Parallel Coordinate Plot with Chicken, Fish,  and Processed Pork"),
+#   list(data_list = list(beef_Pork_origin, fish_origin, Processed_Pork_origin), output_name = "bfp", title = "Parallel Coordinate Plot with Beef, Fish, and Processed Pork"),
+#   list(data_list = list(beef_Pork_origin, chicken_origin, Processed_Pork_origin), output_name = "bcp", title = "Parallel Coordinate Plot with Beef, Chicken, and Processed Pork"),
+#   list(data_list = list(beef_Pork_origin, chicken_origin, fish_origin), output_name = "bcf", title = "Parallel Coordinate Plot with Beef, Chicken, and Fish")
+# )
+# 
+# # Generate and save plots for all combinations
+# for (comb in data_combinations) {
+#   create_parallel_plot(
+#     data_list = comb$data_list,
+#     output_name = comb$output_name,
+#     title = comb$title
+#   )
+# }
+```
 
 ## Vegetable
 **Fiber**
