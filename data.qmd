@@ -13,7 +13,6 @@ While the dataset is rich in information, we encountered missing values in some 
 library(readr)
 library(tidyverse)
 library(dplyr)
-library(readr)
 ```
 
 ### Data Overview
@@ -102,14 +101,4 @@ From above, we can see that there are few missing values for main nutrients such
 
 For nutrients that are not always displayed on packages, including `Vitamins`, `Sugars, added G`, we have high portions of missing values. Therefore, in this project, we would focus on main nutrients in most of the time, and address supplemented nutrients when it is necessary.
 
-## Data Cleaning
-```{r}
-data <- data |> 
-  mutate(publishedDate = as.Date(publishedDate, format = "%m/%d/%Y"))
-
-latest_data <- data |> 
-  group_by(description, foodCategory, brandOwner, brandName) |> 
-  slice_max(order_by = publishedDate, n = 1, with_ties = FALSE) |> 
-  ungroup()
-```
 
