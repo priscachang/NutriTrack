@@ -19,9 +19,22 @@ Preprocess
 **Bread's Biplot - See if any outliers!**
 ```{r}
 # table(latest_data$foodCategory)
+library(readr)
+library(tidyverse)
 library(dplyr)
 library(stringr)
 library(redav)
+
+data <- read_csv("Branded Nutrients_Dataset.csv",
+                 show_col_types = FALSE)
+
+data <- data |> 
+  mutate(publishedDate = as.Date(publishedDate, format = "%m/%d/%Y"))
+
+latest_data <- data |> 
+  group_by(description, foodCategory, brandOwner, brandName) |> 
+  slice_max(order_by = publishedDate, n = 1, with_ties = FALSE) |> 
+  ungroup()
 ```
 
 ```{r}
@@ -338,6 +351,7 @@ data_cleaned_1 <- align_weight_scale(combined_meat_data_1, food_type = "solid")
 
 ```{r}
 library(GGally)
+library(ggplot2)
 
 data_filtered_1 <- data_cleaned_1 %>%
   filter(
@@ -362,6 +376,8 @@ ggparcoord(
   ) +
   labs(x = "Nutritional Variables", y = "Scaled Values", color = "Meat Type")
 
+# output_path <- "C:/Users/User/Desktop/Master/STATGR5702_EDAV/Asgmt/Final/NutriTrack/docs/images/fcp.jpg"
+# ggsave(filename = output_path, plot = fcp, width = 8, height = 6, dpi = 300)
 ```
 
 Plot2
@@ -415,6 +431,84 @@ ggparcoord(
 
 ```
 
+```{r}
+#Save data for interactive plots
+# Load required libraries
+# library(ggplot2)
+# # Function to create and save parallel coordinate plots
+# create_parallel_plot <- function(data_list, output_name, title) {
+#   # Combine the data from the input list
+#   combined_data <- bind_rows(data_list) |>
+#     select(
+#       description,
+#       packageWeight,
+#       `Protein G`,
+#       `Total lipid (fat) G`,
+#       `Energy KCAL`,
+#       `Calcium, Ca MG`,
+#       `Iron, Fe MG`,
+#       `Sodium, Na MG`,
+#       `Cholesterol MG`,
+#       `Meat_Type`
+#     ) |>
+#     drop_na()
+# 
+#   # Align weights
+#   data_cleaned <- align_weight_scale(combined_data, food_type = "solid")
+# 
+#   # Filter the data
+#   data_filtered <- data_cleaned %>%
+#     filter(
+#       !(`Sodium, Na MG` > 500),
+#       !(`Total lipid (fat) G` > 100)
+#     )
+# 
+#   # Create the parallel coordinate plot
+#   plot <- ggparcoord(
+#     data = data_filtered,
+#     columns = 2:8,                    # Nutritional variable columns
+#     groupColumn = 9,                  # Group by Meat_Type
+#     alpha = 0.5,                      # Transparency
+#     scale = "uniminmax",              # Standardize data
+#     title = title                     # Plot title
+#   ) +
+#     theme_minimal() +
+#     theme(
+#       axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+#       axis.text.y = element_text(size = 12),
+#       legend.text = element_text(size = 12)
+#     ) +
+#     labs(x = "Nutritional Variables", y = "Scaled Values", color = "Meat Type")
+# 
+#   # Save the plot
+#   output_path <- paste0("C:/Users/User/Desktop/Master/STATGR5702_EDAV/Asgmt/Final/NutriTrack/docs/images/", output_name, ".jpg")
+#   ggsave(filename = output_path, plot = plot, width = 10, height = 5, dpi = 300)
+# }
+# 
+# # Define the data combinations
+# data_combinations <- list(
+#   list(data_list = list(beef_Pork_origin, chicken_origin), output_name = "bc", title = "Parallel Coordinate Plot with Beef and Chicken"),
+#   list(data_list = list(beef_Pork_origin, fish_origin), output_name = "bf", title = "Parallel Coordinate Plot with Beef and Fish"),
+#   list(data_list = list(beef_Pork_origin, Processed_Pork_origin), output_name = "bp", title = "Parallel Coordinate Plot with Beef and Processed Pork"),
+#   list(data_list = list(chicken_origin, fish_origin), output_name = "cf", title = "Parallel Coordinate Plot with Chicken and Fish"),
+#   list(data_list = list(fish_origin, Processed_Pork_origin), output_name = "fp", title = "Parallel Coordinate Plot with Fish and Processed Pork"),
+#   list(data_list = list(chicken_origin, Processed_Pork_origin), output_name = "cp", title = "Parallel Coordinate Plot with Chicken and Processed Pork"),
+#   list(data_list = list(chicken_origin, fish_origin, Processed_Pork_origin), output_name = "cfp", title = "Parallel Coordinate Plot with Chicken, Fish,  and Processed Pork"),
+#   list(data_list = list(beef_Pork_origin, fish_origin, Processed_Pork_origin), output_name = "bfp", title = "Parallel Coordinate Plot with Beef, Fish, and Processed Pork"),
+#   list(data_list = list(beef_Pork_origin, chicken_origin, Processed_Pork_origin), output_name = "bcp", title = "Parallel Coordinate Plot with Beef, Chicken, and Processed Pork"),
+#   list(data_list = list(beef_Pork_origin, chicken_origin, fish_origin), output_name = "bcf", title = "Parallel Coordinate Plot with Beef, Chicken, and Fish")
+# )
+# 
+# # Generate and save plots for all combinations
+# for (comb in data_combinations) {
+#   create_parallel_plot(
+#     data_list = comb$data_list,
+#     output_name = comb$output_name,
+#     title = comb$title
+#   )
+# }
+```
+
 2. Vegetables *3-4
 
 **Fiber**
@@ -444,12 +538,30 @@ vege_fruit_data
 ```
 
 ```{r, fig.width=12, fig.height=8}
-
 # Select top 30 rows based on Fiber
 top_fiber_data <- vege_fruit_data |>
   rename(Fiber = `Fiber, total dietary G`) |> 
   arrange(desc(Fiber)) |>
-  slice_head(n = 10)  # Select the top 30 rows
+  slice_head(n = 10) |>  # Select the top 30 rows
+  mutate( 
+    description = case_when(
+      description == "ACTUALLY SPICY CRUNCHY LENTILS SUPERFOOD SNACK, ACTUALLY SPICY" ~ "SPICY CRUNCHY LENTILS SUPERFOOD SNACK",
+      # description == "ACTUALLY SPICY CRUNCHY LENTILS SUPERFOOD SNACK, ACTUALLY SPICY" ~ "SPICY CRUNCHY LENTILS SUPERFOOD SNACK",
+      # description == "100% BABY KALE" ~ "BABY KALE",
+      # description == "(GREEN) HOUSE CAESAR CRUNCHY GREEN LEAF, ROMAINE LETTUCE AND ARUGULA, SHREDDED SHARP PARMESAN CHEESE, AND CRISPY GARLIC PARMESAN CROUTONS SALAD KIT" ~ "REVOL GREENS SALAD KIT",
+      # description == "A SUPERFOOD SALAD WITH TENDER, TASTY BABY KALE" ~ "BABY KALE",
+      # description == "50/50 BLEND BABY SPINACH & SPRING MIX, 50/50 BLEND" ~ "BlEND BABY SPINACH & SPRING MIX",
+      # description == "50/50 MIX SALAD" ~ "FRESH EXPRESS MIX SALAD",
+      # description == "100% RUSSET JULIENNE POTATOES IN A CREAMY CHEESE SAUCE" ~ "RUSSET JULIENNE POTATOES IN A CREAMY CHEESE SAUCE",
+      TRUE ~ description  # Keep the original description for all other rows
+    )
+  )
+    
+rows_to_delete <- c("50/50 BLEND A BLEND OF SPRING MIX & SPINACH, 50/50 BLEND",
+                    "A SUPERFOOD SALAD WITH TENDER, TASTY BABY KALE",
+                    "BlEND BABY SPINACH & SPRING MIX",
+                    "50-50 BABY SPINACH, BABY LETTUCE, BABY GREENS, RADICCHIO, 50-50",
+                    "50-50 BABY SPINACH, BABY LETTUCES, BABY GREENS, RADICCHIO, 50-50")
 
 # Draw Cleveland dot plot
 ggplot(top_fiber_data, aes(x = Fiber, y = fct_reorder(description, Fiber))) +
@@ -612,6 +724,27 @@ Brand Strategy:
 Brands like MAPLEHURST BAKERIES seem to target consumers seeking indulgent, sugary, high-calorie products.
 Brands like SCHNUCKS may target health-conscious consumers with lower sugar and calorie products.
 
+```{r}
+snack_bi <- latest_data[latest_data$foodCategory %in% "Cakes, Cupcakes, Snack Cakes", ] |> 
+  select(
+    description, 
+    packageWeight, 
+    brandName,
+    `Energy KCAL`, 
+    `Total Sugars G`,
+    `Total lipid (fat) G`,
+    #`Sugars, added G`,
+    `Carbohydrate, by difference G`
+  ) |> 
+  drop_na()
+
+snack_bi_cleaned <- align_weight_scale(snack_bi, food_type = "solid")
+```
+
+
+```{r}
+draw_biplot(snack_bi_cleaned |> select(-description), fix_sign = TRUE)
+```
 
 4. Drinks *1
 - Apple Juice: bi-plot. Columns = [Energy, Sugar, Sodium, Vit C, Potassium]. Drop rows with missing values.
