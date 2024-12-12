@@ -1,2 +1,60 @@
 # Introduction
 Living abroad often means taking on the responsibility of preparing one’s own meals, which can make it challenging to ensure a balanced and healthy diet. Understanding the nutritional content of food is crucial, especially for individuals with specific dietary needs, such as increasing iron intake or reducing sugar consumption. However, identifying the right foods to meet these needs can be overwhelming without reliable information. This project leverages data from the United States Department of Agriculture (USDA), which provides comprehensive details on the nutritional composition of various foods. By conducting exploratory data analysis and creating visualizations, this project aims to simplify the process of identifying nutrient-rich foods and making informed dietary decisions, ultimately supporting better health and well-being.
+
+```{r}
+library(ggplot2)
+
+# Define coordinates for the letter U
+u_points <- data.frame(
+  x = c(rep(1, 50), seq(1, 1.8, length.out = 50), rep(1.8, 50)),
+  y = c(seq(0, 2, length.out = 50), rep(0, 50), seq(0, 2, length.out = 50))
+)
+
+# Define coordinates for the letter S with adjusted height and position
+theta <- seq(0, pi, length.out = 100)
+s_top <- data.frame(x = 2.7 + 0.5 * sin(-theta), y = 1.5 + 0.5 * cos(-theta)) 
+s_bottom <- data.frame(x = 2.7 + 0.5 * sin(theta), y = 0.5 + 0.5 * cos(theta))  
+s_points <- rbind(s_top, s_bottom)
+
+# Define coordinates for the letter D with adjusted height and position
+d_line <- data.frame(x = rep(3.5, 50), y = seq(0, 2, length.out = 50))  # Vertical line
+d_semi_circle <- data.frame(
+  x = 3.5 + 0.8 * cos(seq(-pi / 2, pi / 2, length.out = 100)), 
+  y = 1 + 1 * sin(seq(-pi / 2, pi / 2, length.out = 100))
+)  
+d_points <- rbind(d_line, d_semi_circle)
+
+# Define coordinates for the letter A with a crossbar and position adjustment
+a_points <- data.frame(
+  x = c(seq(4.5, 5, length.out = 50), seq(5, 5.5, length.out = 50), seq(4.8, 5.2, length.out = 50)),
+  y = c(seq(0, 2, length.out = 50), seq(2, 0, length.out = 50), rep(1, 50))
+)
+
+# Combine all the letter point data
+all_points <- rbind(
+  data.frame(letter = "U", x = u_points$x, y = u_points$y),
+  data.frame(letter = "S", x = s_points$x, y = s_points$y),
+  data.frame(letter = "D", x = d_points$x, y = d_points$y),
+  data.frame(letter = "A", x = a_points$x, y = a_points$y)
+)
+
+# Create the scatter plot
+ggplot(all_points, aes(x = x, y = y, color = letter)) +
+  geom_point(size = 3, alpha = 0.8) +
+  labs(
+    x = "",
+    y = ""
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5)
+  ) +
+  scale_color_manual(values = c("U" = "red", "S" = "orange", "D" = "yellow", "A" = "darkgreen"))
+
+```
+
+

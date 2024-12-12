@@ -1,30 +1,13 @@
 # Results
 
-Preprocess
-1. 重複的食品取最新的date - Done
-2. (同類別或類似類別) packageWeight --> 統一單位
-3. **新增** 欄位名稱感覺要整理一下 單位可以去掉 & 簡化一些名稱否則biplot會亂
-
-0. Bread and Buns x3 + x1
-- Columns = [Energy, Protein, Fat, Carbohydrate, Sugars, Fiber, Calcium, Sodium]
-
-`CLAIRE`
-0.0 All breads*1
-- 統一單位
-- Biplot 
-- 找 outlier 看看是啥
-
-## Breads
-
-**Bread's Biplot - See if any outliers!**
+## Our Data Story
+Welcome to our culinary journey through nutritional data! Using data from the USDA, we’re diving deep into the nutritional profiles of various food categories like bread, meat, vegetables, and beverages. Imagine walking through a grocery store or preparing a meal—we’ll take you on a journey through the foods we often enjoy, starting with appetizers like bread, moving on to hearty main courses of meat, pairing it with fresh vegetables, and finally topping it all off with a refreshing beverage. This project isn’t just about numbers—it’s about exploring the stories behind the foods that nourish us.
 ```{r}
-# table(latest_data$foodCategory)
-library(readr)
-library(tidyverse)
-library(dplyr)
-library(stringr)
-library(redav)
-
+suppressPackageStartupMessages(library(tidyverse, quietly = TRUE))
+suppressPackageStartupMessages(library(dplyr, quietly = TRUE))
+suppressPackageStartupMessages(library(stringr, quietly = TRUE))
+suppressPackageStartupMessages(library(redav, quietly = TRUE))
+suppressPackageStartupMessages(library(GGally, quietly = TRUE))
 data <- read_csv("Branded Nutrients_Dataset.csv",
                  show_col_types = FALSE)
 
@@ -37,10 +20,13 @@ latest_data <- data |>
   ungroup()
 ```
 
-```{r}
-# Execute the below line to install for biplot
-# remotes::install_github("jtr13/redav")
+## Breads
+Let's dive into the fascinating world of bread through our data visualization journey!
+As we begin our journey into the world of bread, let’s first explore the overall nutritional differences across various types of bread. In the first plot, we observe a clear separation of bread based on their nutritional attributes like protein content, fat, sugars, and sodium. Notably, whole wheat sandwich rolls stand out with significantly higher values for specific nutrients compared to others, suggesting that they pack more in terms of energy and macronutrients. This chart sets the stage for understanding how bread types can vary widely in their health benefits, inviting us to dive deeper into specific categories.
 
+
+```{r, fig.width=15, fig.height=10}
+# remotes::install_github("jtr13/redav")
 # Filter rows where foodCategory is "Breads & Buns" and keep only selected columns
 bread_data <- latest_data |> 
   filter(foodCategory == "Breads & Buns") |> 
@@ -59,14 +45,6 @@ bread_data <- latest_data |>
   ) |> 
   drop_na()
 
-# summary(bread_data)
-```
-
-```{r}
-# bread_data$packageWeight
-```
-
-```{r}
 # Adjusted function to parse packageWeight
 parse_packageWeight <- function(data, food_type) {
   # Ensure food_type is provided
@@ -217,66 +195,55 @@ align_weight_scale <- function(data, food_type) {
 }
 
 bread_data <- align_weight_scale(bread_data, "solid")
-# head(bread_data, 20)
+
+bread_data <- bread_data |>
+  mutate( 
+    description = case_when(
+      description == "100% WHOLE WHEAT SANDWICH THINS ROLLS, 100% WHOLE WHEAT" ~ "WHOLE WHEAT SANDWICH THINS ROLLS",
+      description == "2 BRIOCHE CHOCOLATE POPOVERS, 2 BRIOCHE" ~ "BRIOCHE CHOCOLATE POPOVERS",
+      description == "7 GRAIN OLIVE OIL CROSTINI, 7 GRAIN OLIVE OIL" ~ "GRAIN OLIVE OIL CROSTINI",
+      description == "8 GRAIN ORGANIC GRAIN HEARTY WHEAT FLATBREAD, 8 GRAIN" ~ "GRAIN HEARTY WHEAT FLATBREAD",
+      TRUE ~ description  # Keep the original description for all other rows
+    )
+  )
+
+options(warn = -1)
+suppressWarnings(
+  draw_biplot(bread_data, point_labels = TRUE, point_size = 2, label_size = 3, fix_sign = TRUE)
+)
+options(warn = 0)
 ```
 
-```{r}
-draw_biplot(bread_data, point_labels = TRUE, point_size = 2, label_size = 3)
-```
-
-0.1 Bagels, White Bread, Hamburger/ Sandwish/ Hotdog Buns --> 看品牌 *3
-- Biplot x3 
 
 **Bagels Biplot**
-Below is the bi-plot of brands for bagels.
+
+Next, we narrow our focus to bagels from different brands. The second plot reveals interesting insights into how the nutritional profiles of bagels can differ dramatically depending on the brand. Some brands, like Wake-N-Bagel, are high in total lipids and sugars, while others, such as Kroger, show more balanced profiles. This variation highlights the importance of brand selection when choosing bagels for a meal, as their nutritional contributions to our diet can vary significantly.
 ```{r,fig.height=10,fig.width=15}
 bagel_data <- bread_data |> 
   filter(str_detect(description, regex("bagel", ignore_case = TRUE)))
 
 draw_biplot(bagel_data |> select(-description, -foodCategory, -brandOwner),
-            label_size = 2, fix_sign = TRUE,)
+            label_size = 5, fix_sign = TRUE,)
 ```
 
 **Wheat Bread Biplot**
+
+Lastly, our journey concludes with an in-depth look at wheat bread across brands. The third plot shows how brands like Simply Roundys stand apart with exceptionally high carbohydrate content, while others, such as Angelic Bakehouse, maintain a balanced nutritional profile. This comparison emphasizes how even within the same bread category, brands play a crucial role in defining the nutritional quality. Whether you are shopping for a hearty slice of wheat bread or a light and nutritious option, these insights offer valuable guidance in making informed choices at the grocery store.
 ```{r}
+options(warn = -1)
 wheat_bread_data <- bread_data |> 
   filter(str_detect(description, regex("wheat", ignore_case = TRUE)))
 
 draw_biplot(wheat_bread_data |> select(-description, -foodCategory, -brandOwner),
-            label_size = 2, fix_sign = TRUE,)
-```
-**Data Issue**: 
-
-同樣的食物不同重量的會被算成很多種 --> 是否groupby 要把packageWeight拿掉?
-
-另外2675939 2675821 看起來都一樣為何兩筆都還在?
-
-```{r}
-latest_data |> 
-  filter(description=="100% WHOLE WHEAT BREAD, 100% WHOLE WHEAT") |> 
-  filter(brandOwner == "Safeway, Inc.") 
-  
-```
-```{r}
-wheat_bread_data |> 
-  filter(description=="100% WHOLE WHEAT BREAD, 100% WHOLE WHEAT") |> 
-  filter(brandOwner == "Safeway, Inc.")
+            label_size = 3, fix_sign = TRUE,)
+options(warn = 0)
 ```
 
-`PRISCA`
-1. Paralleled Coordinated Plot x1
 
-- 統一單位
+## Meat
+Now, let’s dive into the heart of the meal—meat. In the first plot, we explore the nutritional composition of Fish, Poultry, Chicken & Turkey, and Processed Pork. The visual comparison reveals that fish consistently scores high in protein content while keeping fat levels moderate, making it a popular choice for health-conscious eaters. Poultry and chicken tend to cluster lower in fat and cholesterol compared to processed pork, which stands out with higher sodium levels—a likely result of curing and preservation processes. This contrast offers a clear distinction between the natural and processed meat options.
 
-- 各種肉類 & 魚類用不同顏色，axes 為重點營養素，看不同肉的營養素含量
-
---> Understand different nutritions across different types of meats/fishes
-```{r}
-tmp <- table(latest_data$foodCategory)
-summary_table <- sort(tmp[tmp > 80], decreasing = TRUE)
-summary_table
-```
-```{r}
+```{r, fig.width=15, fig.height=10}
 # Fish
 fish_origin <- latest_data[latest_data$foodCategory %in% "Fish  Unprepared/Unprocessed", ] |> 
   mutate(packageWeight = str_extract(description, "\\d+\\s?(OZ|LB)")) |> 
@@ -319,10 +286,7 @@ beef_Pork_origin <- latest_data[
       TRUE ~ NA_character_  
     )
   )
-```
 
-Plot 1
-```{r}
 # Merge the whole meat data
 data_list1 <- list(fish_origin, chicken_origin, Processed_Pork_origin)
 
@@ -340,18 +304,8 @@ combined_meat_data_1 <- bind_rows(data_list1) |>
     `Meat_Type`
   ) |> 
   drop_na()
-#colSums(is.na(combined_meat_data))
-```
 
-```{r}
 data_cleaned_1 <- align_weight_scale(combined_meat_data_1, food_type = "solid")
-```
-
-
-
-```{r}
-library(GGally)
-library(ggplot2)
 
 data_filtered_1 <- data_cleaned_1 %>%
   filter(
@@ -370,9 +324,13 @@ ggparcoord(
 ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
-    axis.text.y = element_text(size = 12),
-    legend.text = element_text(size = 12)
+    axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 18),
+    axis.title.x = element_text(size = 18),  
+    axis.title.y = element_text(size = 18),
+    legend.title = element_text(size = 18),
+    legend.text = element_text(size = 18),
+    plot.title = element_text(size = 20)
   ) +
   labs(x = "Nutritional Variables", y = "Scaled Values", color = "Meat Type")
 
@@ -380,8 +338,11 @@ ggparcoord(
 # ggsave(filename = output_path, plot = fcp, width = 8, height = 6, dpi = 300)
 ```
 
-Plot2
-```{r}
+
+The second chart shifts focus to Beef, Pork, and Poultry (Chicken & Turkey). Beef dominates in protein content and iron, highlighting its role as a nutrient powerhouse, though this comes at the cost of higher fat and cholesterol levels. Pork, sitting between beef and poultry, offers a balanced profile, but its variability in sodium levels stands out—some cuts are lean and natural, while others are heavily processed. Poultry emerges as the leanest choice, appealing to those prioritizing low-fat and low-calorie options.
+
+Together, these plots not only provide a nutrient-rich overview of various meat categories but also highlight the trade-offs that come with flavor and processing, helping us appreciate the diverse choices available at the meat counter.
+```{r, fig.width=15, fig.height=10}
 # Merge the whole meat data
 data_list2 <- list(chicken_origin, beef_Pork_origin)
 
@@ -399,11 +360,8 @@ combined_meat_data_2 <- bind_rows(data_list2) |>
     `Meat_Type`
   ) |> 
   drop_na()
-#colSums(is.na(combined_meat_data))
-```
 
 
-```{r}
 data_cleaned_2 <- align_weight_scale(combined_meat_data_2, food_type = "solid")
 
 data_filtered_2 <- data_cleaned_2 %>%
@@ -415,24 +373,29 @@ data_filtered_2 <- data_cleaned_2 %>%
 
 ggparcoord(
   data = data_filtered_2,
-  columns = 2:8,                    # 營養變量的列
-  groupColumn = 9,                 # 使用 Meat_Type 作為分組
-  alpha = 0.5,                      # 透明度
-  scale = "uniminmax",              # 標準化數據
-  title = "Parallel Coordinate Plot with Fish, Beef and Pork"
+  columns = 2:8,                   
+  groupColumn = 9,                 
+  alpha = 0.5,                      
+  scale = "uniminmax",            
+  title = "Parallel Coordinate Plot with Chicken, Beef and Pork"
 ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
-    axis.text.y = element_text(size = 12),
-    legend.text = element_text(size = 12)
+    axis.text.x = element_text(size = 18, angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 18),
+    axis.title.x = element_text(size = 18),  
+    axis.title.y = element_text(size = 18),
+    legend.title = element_text(size = 18),
+    legend.text = element_text(size = 18),
+    plot.title = element_text(size = 20)
   ) +
   labs(x = "Nutritional Variables", y = "Scaled Values", color = "Meat Type")
 
 ```
 
+
 ```{r}
-#Save data for interactive plots
+# Save data for interactive plots - execute when required and saved the images properly
 # Load required libraries
 # library(ggplot2)
 # # Function to create and save parallel coordinate plots
@@ -509,10 +472,11 @@ ggparcoord(
 # }
 ```
 
-2. Vegetables *3-4
-
+## Vegetable
 **Fiber**
-```{r}
+
+As we move into the world of vegetables, we delve into their nutritional essence—fiber. The Cleveland Dot Plot showcases the top 10 fiber-rich vegetables or fruits, highlighting their contributions to dietary fiber per 100 grams. At the pinnacle, we see "Actually Spicy Crunchy Lentils Superfood Snack," a clear leader in fiber density, followed by other nutrient-packed options like "100% Natural Organic Chia Seeds" and "100% Chunky Minis Avocado." This visualization not only emphasizes the variety within vegetables but also their potential as high-fiber staples in a balanced diet. It invites us to explore how different vegetables contribute uniquely to our nutritional needs, inspiring informed choices for a healthier lifestyle.
+```{r, fig.width=12, fig.height=8}
 # Define the list of food categories to filter
 selected_categories <- c(
   #"Vegetables - Prepared/Processed",
@@ -532,144 +496,34 @@ vege_fruit_data <- latest_data |>
   select(-fdcId)
 
 vege_fruit_data <- align_weight_scale(vege_fruit_data, "solid")
-# View the first few rows of the filtered data
-vege_fruit_data
-# dim(vege_fruit_data)
-```
 
-```{r, fig.width=12, fig.height=8}
-# Select top 30 rows based on Fiber
+# Select top 10 rows based on Fiber
 top_fiber_data <- vege_fruit_data |>
   rename(Fiber = `Fiber, total dietary G`) |> 
   arrange(desc(Fiber)) |>
-  slice_head(n = 10) |>  # Select the top 30 rows
-  mutate( 
-    description = case_when(
-      description == "ACTUALLY SPICY CRUNCHY LENTILS SUPERFOOD SNACK, ACTUALLY SPICY" ~ "SPICY CRUNCHY LENTILS SUPERFOOD SNACK",
-      # description == "ACTUALLY SPICY CRUNCHY LENTILS SUPERFOOD SNACK, ACTUALLY SPICY" ~ "SPICY CRUNCHY LENTILS SUPERFOOD SNACK",
-      # description == "100% BABY KALE" ~ "BABY KALE",
-      # description == "(GREEN) HOUSE CAESAR CRUNCHY GREEN LEAF, ROMAINE LETTUCE AND ARUGULA, SHREDDED SHARP PARMESAN CHEESE, AND CRISPY GARLIC PARMESAN CROUTONS SALAD KIT" ~ "REVOL GREENS SALAD KIT",
-      # description == "A SUPERFOOD SALAD WITH TENDER, TASTY BABY KALE" ~ "BABY KALE",
-      # description == "50/50 BLEND BABY SPINACH & SPRING MIX, 50/50 BLEND" ~ "BlEND BABY SPINACH & SPRING MIX",
-      # description == "50/50 MIX SALAD" ~ "FRESH EXPRESS MIX SALAD",
-      # description == "100% RUSSET JULIENNE POTATOES IN A CREAMY CHEESE SAUCE" ~ "RUSSET JULIENNE POTATOES IN A CREAMY CHEESE SAUCE",
-      TRUE ~ description  # Keep the original description for all other rows
-    )
-  )
-    
-rows_to_delete <- c("50/50 BLEND A BLEND OF SPRING MIX & SPINACH, 50/50 BLEND",
-                    "A SUPERFOOD SALAD WITH TENDER, TASTY BABY KALE",
-                    "BlEND BABY SPINACH & SPRING MIX",
-                    "50-50 BABY SPINACH, BABY LETTUCE, BABY GREENS, RADICCHIO, 50-50",
-                    "50-50 BABY SPINACH, BABY LETTUCES, BABY GREENS, RADICCHIO, 50-50")
+  slice_head(n = 10)  # Select the top 10 rows
 
 # Draw Cleveland dot plot
 ggplot(top_fiber_data, aes(x = Fiber, y = fct_reorder(description, Fiber))) +
   geom_point(color = 'blue') +
-  ggtitle("Cleveland Dot Plot for Top 30 Fiber-Rich Vegetables or Fruits") +
+  ggtitle("Cleveland Dot Plot for Top 10 Fiber-Rich Vegetables or Fruits") +
   xlab("Fiber g/100g") +
   ylab("") +
   theme_linedraw() +
   theme(
-    axis.text.y = element_text(size = 8)  # Adjust Y-axis label size for better readability
+    axis.text.y = element_text(size = 10),  # Adjust Y-axis label size for better readability
+    axis.text.x = element_text(size = 15),
+    axis.title.x = element_text(size = 15),  
+    plot.title = element_text(size = 20)
   )+
   theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
-
-```
-```{r, fig.width=12, fig.height=8}
-
-# # Select top 30 rows based on Calcium
-# rows_to_delete <- c("50/50 BLEND A BLEND OF SPRING MIX & SPINACH, 50/50 BLEND", 
-#                     "A SUPERFOOD SALAD WITH TENDER, TASTY BABY KALE",
-#                     "BlEND BABY SPINACH & SPRING MIX",
-#                     "50-50 BABY SPINACH, BABY LETTUCE, BABY GREENS, RADICCHIO, 50-50",
-#                     "50-50 BABY SPINACH, BABY LETTUCES, BABY GREENS, RADICCHIO, 50-50")
-# 
-# top_cal_data <- vege_fruit_data |>
-#   rename(Calcium = `Calcium, Ca MG`) |> 
-#   arrange(desc(Calcium)) |>
-#   slice_head(n = 40)  |> 
-#   mutate(
-#     description = case_when(
-#       description == "100% NATURAL ORGANIC CHIA SEEDS" ~ "ORGANIC CHIA SEEDS",
-#       description == "ACTUALLY SPICY CRUNCHY LENTILS SUPERFOOD SNACK, ACTUALLY SPICY" ~ "SPICY CRUNCHY LENTILS SUPERFOOD SNACK",
-#       description == "100% BABY KALE" ~ "BABY KALE",
-#       description == "(GREEN) HOUSE CAESAR CRUNCHY GREEN LEAF, ROMAINE LETTUCE AND ARUGULA, SHREDDED SHARP PARMESAN CHEESE, AND CRISPY GARLIC PARMESAN CROUTONS SALAD KIT" ~ "REVOL GREENS SALAD KIT",
-#       description == "A SUPERFOOD SALAD WITH TENDER, TASTY BABY KALE" ~ "BABY KALE",
-#       description == "50/50 BLEND BABY SPINACH & SPRING MIX, 50/50 BLEND" ~ "BlEND BABY SPINACH & SPRING MIX",
-#       description == "50/50 MIX SALAD" ~ "FRESH EXPRESS MIX SALAD",
-#       description == "100% RUSSET JULIENNE POTATOES IN A CREAMY CHEESE SAUCE" ~ "RUSSET JULIENNE POTATOES IN A CREAMY CHEESE SAUCE",
-#       TRUE ~ description  # Keep the original description for all other rows
-#     )
-#   ) |> 
-#   filter(!description %in% rows_to_delete)
-# 
-# # Draw Cleveland dot plot
-# ggplot(top_cal_data, aes(x = Calcium, y = fct_reorder(description, Calcium))) +
-#   geom_point(color = "blue") +
-#   ggtitle("Cleveland Dot Plot for Top 30 Calcium-Rich Vegetables or Fruits") +
-#   xlab("Calcium mg/100g") +
-#   ylab("") +
-#   theme_linedraw() +
-#   theme(
-#     axis.text.y = element_text(size = 8)  # Adjust Y-axis label size for better readability
-#   )+
-#   theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
-
 ```
 
 
-```{r, fig.width=12, fig.height=4}
-
-# Select top 30 rows based on Vitamin C, total ascorbic acid MG
-# rows_to_delete <- c("50/50 BLEND A BLEND OF SPRING MIX & SPINACH, 50/50 BLEND", 
-#                     "A SUPERFOOD SALAD WITH TENDER, TASTY BABY KALE",
-#                     "BlEND BABY SPINACH & SPRING MIX",
-#                     "50-50 BABY SPINACH, BABY LETTUCE, BABY GREENS, RADICCHIO, 50-50",
-#                     "50-50 BABY SPINACH, BABY LETTUCES, BABY GREENS, RADICCHIO, 50-50")
-
-# top_vc_data <- vege_fruit_data |>
-#   rename(Vitamin_C = `Vitamin C, total ascorbic acid MG`) |> 
-#   arrange(desc(Vitamin_C)) |>
-#   slice_head(n = 15) |> 
-#    filter(!is.na(Vitamin_C))
-#   # mutate(
-#   #   description = case_when(
-#   #     description == "100% NATURAL ORGANIC CHIA SEEDS" ~ "ORGANIC CHIA SEEDS",
-#   #     description == "ACTUALLY SPICY CRUNCHY LENTILS SUPERFOOD SNACK, ACTUALLY SPICY" ~ "SPICY CRUNCHY LENTILS SUPERFOOD SNACK",
-#   #     description == "100% BABY KALE" ~ "BABY KALE",
-#   #     description == "(GREEN) HOUSE CAESAR CRUNCHY GREEN LEAF, ROMAINE LETTUCE AND ARUGULA, SHREDDED SHARP PARMESAN CHEESE, AND CRISPY GARLIC PARMESAN CROUTONS SALAD KIT" ~ "REVOL GREENS SALAD KIT",
-#   #     description == "A SUPERFOOD SALAD WITH TENDER, TASTY BABY KALE" ~ "BABY KALE",
-#   #     description == "50/50 BLEND BABY SPINACH & SPRING MIX, 50/50 BLEND" ~ "BlEND BABY SPINACH & SPRING MIX",
-#   #     description == "50/50 MIX SALAD" ~ "FRESH EXPRESS MIX SALAD",
-#   #     description == "100% RUSSET JULIENNE POTATOES IN A CREAMY CHEESE SAUCE" ~ "RUSSET JULIENNE POTATOES IN A CREAMY CHEESE SAUCE",
-#   #     TRUE ~ description  # Keep the original description for all other rows
-#   #   )
-#   # ) |> 
-#   # filter(!description %in% rows_to_delete)
-# 
-# # Draw Cleveland dot plot
-# ggplot(top_vc_data, aes(x = Vitamin_C, y = fct_reorder(description, Vitamin_C))) +
-#   geom_point(color = "blue") +
-#   ggtitle("Cleveland Dot Plot for Top 30 Vitamin_C-Rich Vegetables or Fruits") +
-#   xlab("Vitamin_C mg/100g") +
-#   ylab("") +
-#   theme_linedraw() +
-#   theme(
-#     axis.text.y = element_text(size = 8)  # Adjust Y-axis label size for better readability
-#   )+
-#   theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
-```
-
-`PRISCA`
-3. Snacks *1
-
-- 挑Cakes, Cupcakes, Snack Cakes
-
-- 統一單位
-
-- scatter plot: x = calorie, y = sugar, color = brandOwner or brandName
-```{r}
+## Desserts
+As we approach the dessert aisle, the allure of cakes and sweets draws our attention. In this scatter plot, we delve into the relationship between sugar content and calorie count across various cake brands. Each dot represents a brand’s offering, revealing interesting patterns. Brands like "Tastykake" stand out with higher sugar and calorie levels, highlighting their indulgent treats. Meanwhile, brands such as "Schnucks" and "Kroger" show a mix of options, balancing between lower and moderate sugar levels with corresponding calorie ranges. This visual narrative underscores how desserts can vary significantly by brand, providing insight into making informed choices that cater to personal preferences and dietary goals.
+```{r,fig.width=12}
+options(warn = -1)
 snack_origin <- latest_data[latest_data$foodCategory %in% "Cakes, Cupcakes, Snack Cakes", ] |> 
   select(
     description, 
@@ -687,10 +541,7 @@ brand_freq <- table(snack_cleaned$brandName)
 brands_more_than_two <- names(brand_freq[brand_freq > 3])
 
 snack <- snack_cleaned[snack_cleaned$brandName %in% brands_more_than_two, ]
-```
 
-
-```{r,fig.width=12}
 ggplot(snack, aes(x = `Energy KCAL`, y = `Total Sugars G`, color = brandName)) +
   geom_point(size = 2, alpha=0.7) + # Add points with size
   theme_minimal() + # Minimal theme
@@ -701,56 +552,26 @@ ggplot(snack, aes(x = `Energy KCAL`, y = `Total Sugars G`, color = brandName)) +
     color = "Brand Name"
   ) +
   theme(
-    plot.title = element_text(hjust = 0.5, size = 16),
-    axis.title = element_text(size = 12)
+    axis.text.x = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.title.x = element_text(size = 15),  
+    axis.title.y = element_text(size = 15),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 12),
+    plot.title = element_text(size = 20)
   )
-```
-
-Positive Correlation: There is a positive correlation between calories (Energy KCAL) and total sugars (G). As calories increase, the total sugar content also tends to increase.
-
-Brand-Specific Clustering:
-
-SCHNUCKS and RICH'S appear to have products with low sugar and calorie content, forming a cluster in the lower-left corner of the plot.
-MAPLEHURST BAKERIES and MO PIE have products that exhibit higher calories and sugar levels, forming a cluster toward the upper-right region.
-SOMETHING SWEET, TASTYKAKE, and UKROP'S are distributed across higher calorie and sugar levels, suggesting their products may be more calorie-dense and sugary.
-Outliers:
-
-There are a few outliers with exceptionally high sugar and calorie values, particularly from MAPLEHURST BAKERIES and MO PIE. These might represent dessert items or highly sweetened products.
-Low-Sugar Options:
-
-Some brands like KROGER and DIERBERGS BAKEHOUSE appear to have options with relatively lower sugar and calorie levels, suggesting potential low-calorie product lines.
-Brand Strategy:
-
-Brands like MAPLEHURST BAKERIES seem to target consumers seeking indulgent, sugary, high-calorie products.
-Brands like SCHNUCKS may target health-conscious consumers with lower sugar and calorie products.
-
-```{r}
-snack_bi <- latest_data[latest_data$foodCategory %in% "Cakes, Cupcakes, Snack Cakes", ] |> 
-  select(
-    description, 
-    packageWeight, 
-    brandName,
-    `Energy KCAL`, 
-    `Total Sugars G`,
-    `Total lipid (fat) G`,
-    #`Sugars, added G`,
-    `Carbohydrate, by difference G`
-  ) |> 
-  drop_na()
-
-snack_bi_cleaned <- align_weight_scale(snack_bi, food_type = "solid")
+options(warn = 0)
 ```
 
 
-```{r}
-draw_biplot(snack_bi_cleaned |> select(-description), fix_sign = TRUE)
-```
+## Drinks
+**apple_juice**
 
-4. Drinks *1
-- Apple Juice: bi-plot. Columns = [Energy, Sugar, Sodium, Vit C, Potassium]. Drop rows with missing values.
+After indulging in sweet cakes and desserts, it’s time to quench our thirst. We move to the drinks section, where two classic beverages take the spotlight: apple juice and milk. Each sip of these drinks tells a different story about their brand and nutritional content.
 
-- Milk: bi-plot. Columns = [Energy, Protein, Fat]
+First, we explore the vibrant world of apple juice. Picture yourself in an orchard, choosing the juiciest apples. The PCA chart shows how brands like R.W. Knudsen shine with their high vitamin C content, perhaps reminiscent of freshly squeezed juice bursting with nutrients. On the other hand, brands like Old Orchard cluster together, suggesting a more consistent but less adventurous profile. Whether you're seeking a health boost or just a familiar taste, the choice is yours.
 ```{r}
+options(warn = -1)
 apple_juice_data <- latest_data |> 
   filter(
     str_detect(description, regex("Apple", ignore_case = TRUE)) &  # Contains "Apple"
@@ -769,15 +590,17 @@ apple_juice_data <- latest_data |>
 
 apple_juice_data <- align_weight_scale(apple_juice_data, "liquid")
 
-# apple_juice_data
-```
-
-
-```{r}
 draw_biplot(apple_juice_data |> select(-description))
+options(warn = 0)
 ```
 
+**milk**
+
+Next, we pour a glass of milk—creamy, rich, and comforting. But not all milk is the same! The second PCA chart reveals how brands differentiate. Kemps, sitting apart from the others, suggests a richer, more indulgent milk, perhaps perfect for those seeking higher energy and nutrient content. Meanwhile, brands like Fairlife and Country Fresh offer a more balanced profile, ideal for everyday consumption.
+
+Each glass tells its own story, inviting us to reflect on what we value most in our drinks—whether it’s indulgence, health, or tradition. And so, our supermarket journey continues, as every aisle reveals another layer of discovery.
 ```{r}
+options(warn = -1)
 milk_data <- latest_data |> 
   filter(foodCategory == "Milk") |> 
   filter(
@@ -798,24 +621,13 @@ milk_data <- latest_data |>
   drop_na()
 
 milk_data <- align_weight_scale(milk_data, "liquid")
-
-# milk_data
-```
-
-
-```{r}
 draw_biplot(milk_data |> select(-description))
+options(warn = 0)
 ```
 
 
 
-Food category
 
-1. 挑涵蓋食物最多的幾個種類
-
-2. Plot biplot (熟食) --> interactive
-
- Cheese, Chocalate, Honey, Oils TBD
  
  
 
